@@ -1,0 +1,17 @@
+{
+  "name": "flatJSON2csv · Local & Online Converter",
+  "short_name": "flatJSON2csv",
+  "description": "ted thought this was functional & fancy — Local, privacy-first JSON to CSV converter",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080f0b",
+  "theme_color": "#0e3f2a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230e3f2a'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='monospace' font-weight='bold' font-size='42' fill='%23f0f6f2'>fJ</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

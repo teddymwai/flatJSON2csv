@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>flatJSON2csv · ted thought this was functional & fancy</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<style>
+  /* ── Reset & Luxury Forest Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-base:    rgba(14, 63, 42, 1.00); /* #0e3f2a Luxury Forest Deep Green */
+    --brand-moss:    #33533C;                /* Lush moss/pine intermediate green */
+    --amber-jungle:  #735817;                /* Warm antique bronze / amber jungle */
+    --gold-rich:     #FBAB04;                /* Rich gold / amber highlight */
+    --champagne:     #C7B9A1;                /* Luxury sand / champagne neutral */
+
+    --bg:            #080f0b;                /* Obsidian canvas with subtle forest undertone */
+    --surface:       #0e1813;                /* Quiet elevated container surface */
+    --surface2:      #14231b;                /* Secondary container surface */
+    --surface-card:  #111e17;                /* Elevated card background */
+    --border:        rgba(14, 63, 42, 0.45); /* Brand forest hairline */
+    --border-subtle: rgba(199, 185, 161, 0.12); /* Champagne hairline */
+    --border-gold:   rgba(251, 171, 4, 0.35);  /* Subtle gold accent border */
+
+    --text:          #f0f6f2;                /* Crisp off-white primary */
+    --text-sand:     #e8e4dc;                /* Soft sand copy */
+    --muted:         #9bb1a4;                /* Tinted cool sage */
+    --muted-sand:    #C7B9A1;                /* Champagne secondary text */
+
+    --accent:        #1e6b49;                /* Interactive emerald */
+    --accent-light:  #2e9165;
+    --accent-glow:   rgba(46, 145, 101, 0.25);
+
+    --ok:            #2ea043;
+    --ok-dim:        rgba(46, 160, 67, 0.14);
+    --fail:          #f85149;
+    --fail-dim:      rgba(248, 81, 73, 0.14);
+    --warn:          #FBAB04;
+    --warn-dim:      rgba(251, 171, 4, 0.14);
+
+    --font-mono:     "JetBrains Mono", "Fira Code", monospace;
+    --font-ui:       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --radius-sm:     8px;
+    --radius-md:     14px;
+    --radius-lg:     18px;
+    --radius-pill:   9999px;
+    --row-h:         44px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Layout ───────────────────────────────────────────────────────────── */
+  #app {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── Header ───────────────────────────────────────────────────────────── */
+  #header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  #header-top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  #title-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  #title {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  #title span { color: var(--accent-light); }
+
+  #tagline {
+    font-size: 12px;
+    color: var(--champagne);
+    font-style: italic;
+    letter-spacing: 0.01em;
+  }
+
+  .pill-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    color: var(--muted-sand);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill-badge.privacy {
+    border-color: rgba(46, 160, 67, 0.4);
+    background: rgba(14, 63, 42, 0.25);
+    color: #4ade80;
+  }
+
+  #elapsed {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--champagne);
+    margin-left: auto;
+    background: rgba(14, 63, 42, 0.25);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Telemetry Meters ─────────────────────────────────────────────────── */
+  #telemetry-meters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    background: var(--surface2);
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+
+  .meter-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(8, 15, 11, 0.45);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .meter-head {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .meter-label {
+    color: var(--champagne);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 10px;
+  }
+
+  .meter-val {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .meter-bar-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    display: flex;
+  }
+
+  .meter-bar-fill {
+    background: var(--accent);
+    height: 100%;
+    width: 0%;
+    transition: width 0.3s;
+  }
+
+  /* ── Main Workspace Split Layout ───────────────────────────────────────── */
+  #workspace {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  @media (max-width: 900px) {
+    #workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      overflow-y: auto;
+    }
+  }
+
+  /* ── Configuration Sidebar ────────────────────────────────────────────── */
+  #config-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--champagne);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  /* ── Dropzone ─────────────────────────────────────────────────────────── */
+  #dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(8, 15, 11, 0.6);
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, transform 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #dropzone:hover, #dropzone.drag-over {
+    border-color: var(--accent-light);
+    background: rgba(30, 107, 73, 0.15);
+    transform: translateY(-1px);
+  }
+
+  #dropzone .icon {
+    font-size: 32px;
+    color: var(--accent-light);
+  }
+
+  #dropzone-text {
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  #dropzone-sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  #file-input { display: none; }
+
+  /* ── Option Chips & Inputs ────────────────────────────────────────────── */
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--surface2);
+    border: 1px solid var(--border-subtle);
+    color: var(--muted-sand);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s;
+  }
+
+  .chip-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .chip-btn:active {
+    transform: scale(0.97);
+  }
+
+  .chip-btn.active {
+    background: var(--brand-base);
+    border-color: var(--accent-light);
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  .input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .input-row label {
+    font-size: 11.5px;
+    color: var(--muted-sand);
+  }
+
+  .text-input, select {
+    background: #090e0b;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .text-input:focus, select:focus {
+    border-color: var(--accent-light);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted-sand);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    accent-color: var(--accent-light);
+    width: 15px;
+    height: 15px;
+  }
+
+  /* ── Action Buttons ───────────────────────────────────────────────────── */
+  .action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn {
+    min-height: var(--row-h);
+    padding: 0 20px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-ui);
+    font-size: 13.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    user-select: none;
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+  }
+
+  .btn-primary {
+    background: var(--brand-base);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .btn-primary:hover {
+    background: #1b5e3f;
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+
+  .btn-secondary {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-sand);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(30, 107, 73, 0.2);
+    border-color: var(--accent);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ── Results Stage (Tabs & Preview Table) ──────────────────────────────── */
+  #results-stage {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #results-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    padding: 6px 14px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tab-btn:hover {
+    color: var(--text);
+  }
+
+  .tab-btn.active {
+    background: var(--surface2);
+    color: var(--text);
+    font-weight: 600;
+    border: 1px solid var(--border-subtle);
+  }
+
+  #table-container {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    padding: 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    text-align: left;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #0e1813;
+    color: var(--champagne);
+    padding: 10px 14px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+    white-space: nowrap;
+    z-index: 2;
+  }
+
+  td {
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-right: 1px solid rgba(255, 255, 255, 0.02);
+    color: var(--text-sand);
+    white-space: nowrap;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  tr:hover td {
+    background: rgba(30, 107, 73, 0.1);
+  }
+
+  /* ── Column Chips Display ─────────────────────────────────────────────── */
+  #columns-view {
+    padding: 20px;
+    overflow-y: auto;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .col-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .col-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* ── Raw Output View ──────────────────────────────────────────────────── */
+  #raw-view {
+    padding: 20px;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #raw-textarea {
+    flex: 1;
+    background: #090e0b;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-sand);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 14px;
+    resize: none;
+    outline: none;
+    white-space: pre;
+    overflow: auto;
+  }
+
+  /* ── Empty State ──────────────────────────────────────────────────────── */
+  #empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+
+  #empty-state .icon {
+    font-size: 48px;
+    color: var(--border);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header id="header">
+    <div id="header-top">
+      <div id="title-wrap">
+        <div id="title">flatJSON2csv · <span>local & online</span></div>
+        <div id="tagline">"ted thought this was functional & fancy"</div>
+      </div>
+      <div class="pill-badge privacy">
+        <span class="material-symbols-outlined" style="font-size:14px;">verified_user</span>
+        100% In-Browser · Zero Data Exfiltration
+      </div>
+      <div class="pill-badge">
+        <span class="material-symbols-outlined" style="font-size:14px;">terminal</span>
+        v0.1.0 CLI & Web
+      </div>
+      <button type="button" id="btn-airgap-dl" class="pill-badge" style="cursor:pointer; background:rgba(251, 171, 4, 0.12); border-color:var(--border-gold); color:var(--gold-rich);" title="Download self-contained offline HTML file for air-gapped computers">
+        <span class="material-symbols-outlined" style="font-size:14px;">download_for_offline</span>
+        Air-Gap HTML
+      </button>
+      <div id="elapsed">0.0s</div>
+    </div>
+
+    <!-- ── Telemetry Meters ──────────────────────────────────────────────── -->
+    <div id="telemetry-meters">
+      <div class="meter-card">
+        <div class="meter-head">
+          <span class="meter-label">Active Input</span>
+          <span class="meter-val" id="meter-file-val">No file loaded</span>
+        </div>
+        <div class="meter-bar-track">
+          <div class="meter-bar-fill" id="meter-file-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="meter-card">
+        <div class="meter-head">
+          <span class="meter-label">Records Processed</span>
+          <span class="meter-val" id="meter-records-val">0 / 0</span>
+        </div>
+        <div class="meter-bar-track">
+          <div class="meter-bar-fill" id="meter-records-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="meter-card">
+        <div class="meter-head">
+          <span class="meter-label">Discovered Columns</span>
+          <span class="meter-val" id="meter-cols-val">0 columns</span>
+        </div>
+        <div class="meter-bar-track">
+          <div class="meter-bar-fill" id="meter-cols-bar" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="meter-card">
+        <div class="meter-head">
+          <span class="meter-label">Conversion Rate</span>
+          <span class="meter-val" id="meter-speed-val">0 rows/sec</span>
+        </div>
+        <div class="meter-bar-track">
+          <div class="meter-bar-fill" id="meter-speed-bar" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Workspace ──────────────────────────────────────────────────── -->
+  <main id="workspace">
+
+    <!-- ── Left Configuration Panel ──────────────────────────────────────── -->
+    <aside id="config-panel">
+      <!-- File Selector Dropzone -->
+      <div>
+        <div class="section-label">
+          <span class="material-symbols-outlined" style="font-size:14px;">upload_file</span>
+          Input Dataset
+        </div>
+        <div id="dropzone" role="button" tabindex="0">
+          <span class="material-symbols-outlined icon">cloud_upload</span>
+          <span id="dropzone-text">Drop JSON or NDJSON here</span>
+          <span id="dropzone-sub">or click to browse (.json, .ndjson, .jsonl)</span>
+          <input type="file" id="file-input" accept=".json,.ndjson,.jsonl,application/json">
+        </div>
+        <button type="button" id="btn-load-demo" class="btn btn-secondary" style="min-height:30px; padding:0 12px; font-size:11px; width:100%; margin-top:8px;">
+          <span class="material-symbols-outlined" style="font-size:14px;">science</span>
+          Load Sample Dataset
+        </button>
+      </div>
+
+      <!-- Flattening Strategy -->
+      <div>
+        <div class="section-label">
+          <span class="material-symbols-outlined" style="font-size:14px;">account_tree</span>
+          Flattening Strategy
+        </div>
+        <div class="chip-group" id="flatten-chips">
+          <button type="button" class="chip-btn active" data-val="depth:2">depth:2 (default)</button>
+          <button type="button" class="chip-btn" data-val="depth:1">depth:1</button>
+          <button type="button" class="chip-btn" data-val="depth:3">depth:3</button>
+          <button type="button" class="chip-btn" data-val="full">full</button>
+          <button type="button" class="chip-btn" data-val="none">none</button>
+        </div>
+      </div>
+
+      <!-- Array Handling -->
+      <div>
+        <div class="section-label">
+          <span class="material-symbols-outlined" style="font-size:14px;">data_array</span>
+          Array Handling
+        </div>
+        <div class="chip-group" id="array-chips">
+          <button type="button" class="chip-btn active" data-val="json">json string</button>
+          <button type="button" class="chip-btn" data-val="columns">columns</button>
+          <button type="button" class="chip-btn" data-val="join">join</button>
+          <button type="button" class="chip-btn" data-val="explode">explode</button>
+        </div>
+      </div>
+
+      <!-- Enveloped Path -->
+      <div class="input-row">
+        <label for="input-path">Array Path in Object (auto-detected if blank):</label>
+        <input type="text" id="input-path" class="text-input" placeholder="e.g. data.content">
+      </div>
+
+      <!-- Array Join/Cap Options -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div class="input-row">
+          <label for="array-cap">Array Cap (columns):</label>
+          <input type="number" id="array-cap" class="text-input" value="10" min="1">
+        </div>
+        <div class="input-row">
+          <label for="array-delim">Join Delimiter:</label>
+          <input type="text" id="array-delim" class="text-input" value="; ">
+        </div>
+      </div>
+
+      <!-- Advanced Checkboxes -->
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label class="checkbox-label">
+          <input type="checkbox" id="allow-cartesian">
+          Allow Cartesian expansion
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="quote-all">
+          Quote all CSV cells
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="excel-bom" checked>
+          Add UTF-8 BOM (Excel compatibility)
+        </label>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-stack">
+        <button type="button" id="btn-convert" class="btn btn-primary" disabled>
+          <span class="material-symbols-outlined">download</span>
+          Convert & Download CSV
+        </button>
+        <button type="button" id="btn-dryrun" class="btn btn-secondary" disabled>
+          <span class="material-symbols-outlined">visibility</span>
+          Inspect Columns (Dry Run)
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Right Results & Preview Stage ─────────────────────────────────── -->
+    <section id="results-stage">
+      <nav id="results-tabs">
+        <button type="button" class="tab-btn active" data-tab="table">
+          <span class="material-symbols-outlined" style="font-size:16px;">table_chart</span>
+          Table Preview
+        </button>
+        <button type="button" class="tab-btn" data-tab="columns">
+          <span class="material-symbols-outlined" style="font-size:16px;">schema</span>
+          Columns (<span id="tab-col-count">0</span>)
+        </button>
+        <button type="button" class="tab-btn" data-tab="raw">
+          <span class="material-symbols-outlined" style="font-size:16px;">code</span>
+          Raw CSV
+        </button>
+      </nav>
+
+      <!-- Tab 1: Table Preview -->
+      <div id="table-container">
+        <div id="empty-state">
+          <span class="material-symbols-outlined icon">folder_open</span>
+          <p>Drop a JSON or NDJSON file to inspect and convert locally.</p>
+          <span style="font-size:11.5px; color:var(--muted-sand);">Everything executes client-side inside your browser. No data leaves your computer.</span>
+        </div>
+        <table id="preview-table" style="display:none;">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Discovered Columns -->
+      <div id="columns-view">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label">Discovered Column Schema</span>
+          <button type="button" id="btn-copy-cols" class="btn btn-secondary" style="min-height:32px; padding:0 14px; font-size:11.5px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+            Copy Column List
+          </button>
+        </div>
+        <div class="col-chip-list" id="col-chip-list"></div>
+      </div>
+
+      <!-- Tab 3: Raw CSV Preview -->
+      <div id="raw-view">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label">Raw CSV Output (Preview)</span>
+          <button type="button" id="btn-download-raw" class="btn btn-primary" style="min-height:34px; padding:0 16px; font-size:12px;">
+            <span class="material-symbols-outlined" style="font-size:16px;">file_download</span>
+            Download Full CSV
+          </button>
+        </div>
+        <textarea id="raw-textarea" readonly></textarea>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(() => {
+  // ── State ────────────────────────────────────────────────────────────────
+  let currentFile = null;
+  let rawText = null;
+  let parsedRecords = [];
+  let discoveredColumns = [];
+  let generatedCsv = "";
+  let isConverting = false;
+
+  // ── DOM References ───────────────────────────────────────────────────────
+  const dropzone = document.getElementById("dropzone");
+  const fileInput = document.getElementById("file-input");
+  const dropzoneText = document.getElementById("dropzone-text");
+  const btnConvert = document.getElementById("btn-convert");
+  const btnDryRun = document.getElementById("btn-dryrun");
+  const elapsedNode = document.getElementById("elapsed");
+  const meterFileVal = document.getElementById("meter-file-val");
+  const meterFileBar = document.getElementById("meter-file-bar");
+  const meterRecordsVal = document.getElementById("meter-records-val");
+  const meterRecordsBar = document.getElementById("meter-records-bar");
+  const meterColsVal = document.getElementById("meter-cols-val");
+  const meterColsBar = document.getElementById("meter-cols-bar");
+  const meterSpeedVal = document.getElementById("meter-speed-val");
+  const meterSpeedBar = document.getElementById("meter-speed-bar");
+  const inputPathNode = document.getElementById("input-path");
+  const arrayCapNode = document.getElementById("array-cap");
+  const arrayDelimNode = document.getElementById("array-delim");
+  const allowCartesianNode = document.getElementById("allow-cartesian");
+  const quoteAllNode = document.getElementById("quote-all");
+  const excelBomNode = document.getElementById("excel-bom");
+  const emptyState = document.getElementById("empty-state");
+  const previewTable = document.getElementById("preview-table");
+  const tableHead = document.getElementById("table-head");
+  const tableBody = document.getElementById("table-body");
+  const columnsView = document.getElementById("columns-view");
+  const colChipList = document.getElementById("col-chip-list");
+  const tabColCount = document.getElementById("tab-col-count");
+  const rawView = document.getElementById("raw-view");
+  const rawTextarea = document.getElementById("raw-textarea");
+  const btnCopyCols = document.getElementById("btn-copy-cols");
+  const btnDownloadRaw = document.getElementById("btn-download-raw");
+
+  let activeFlatten = "depth:2";
+  let activeArrayStrategy = "json";
+
+  // ── Chip Toggles ─────────────────────────────────────────────────────────
+  document.querySelectorAll("#flatten-chips .chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#flatten-chips .chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeFlatten = btn.dataset.val;
+    });
+  });
+
+  document.querySelectorAll("#array-chips .chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#array-chips .chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeArrayStrategy = btn.dataset.val;
+    });
+  });
+
+  // ── Tab Navigation ───────────────────────────────────────────────────────
+  document.querySelectorAll("#results-tabs .tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#results-tabs .tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("table-container").style.display = tab === "table" ? "block" : "none";
+      columnsView.style.display = tab === "columns" ? "flex" : "none";
+      rawView.style.display = tab === "raw" ? "flex" : "none";
+    });
+  });
+
+  // ── File Drop & Load ─────────────────────────────────────────────────────
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") fileInput.click(); });
+
+  ["dragenter", "dragover"].forEach(evt => {
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.add("drag-over");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(evt => {
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.remove("drag-over");
+    });
+  });
+
+  dropzone.addEventListener("drop", e => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) handleFile(files[0]);
+  });
+
+  fileInput.addEventListener("change", e => {
+    if (e.target.files.length > 0) handleFile(e.target.files[0]);
+  });
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  async function handleFile(file) {
+    currentFile = file;
+    dropzoneText.textContent = file.name;
+    meterFileVal.textContent = `${file.name} (${formatBytes(file.size)})`;
+    meterFileBar.style.width = "100%";
+    btnConvert.disabled = false;
+    btnDryRun.disabled = false;
+
+    // Read initial preview
+    rawText = await file.text();
+    parseInputData();
+  }
+
+  function parseInputData() {
+    parsedRecords = [];
+    const isNdjson = currentFile.name.endsWith(".ndjson") || currentFile.name.endsWith(".jsonl");
+
+    if (isNdjson) {
+      const lines = rawText.split(/\r?\n/);
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            parsedRecords.push(JSON.parse(line));
+          } catch (err) {
+            console.error("NDJSON line parse error", err);
+          }
+        }
+      }
+    } else {
+      try {
+        const root = JSON.parse(rawText);
+        if (Array.isArray(root)) {
+          parsedRecords = root;
+        } else if (typeof root === "object" && root !== null) {
+          const manualPath = inputPathNode.value.trim();
+          if (manualPath) {
+            const resolved = getNestedValue(root, manualPath);
+            if (Array.isArray(resolved)) parsedRecords = resolved;
+          } else {
+            // Auto-detect shallowest array of objects
+            const detected = autoDetectObjectArray(root);
+            if (detected) {
+              parsedRecords = detected.array;
+              inputPathNode.value = detected.path;
+            } else {
+              parsedRecords = [root];
+            }
+          }
+        }
+      } catch (err) {
+        alert("Could not parse JSON: " + err.message);
+        return;
+      }
+    }
+
+    meterRecordsVal.textContent = `${parsedRecords.length} records`;
+    meterRecordsBar.style.width = parsedRecords.length > 0 ? "100%" : "0%";
+  }
+
+  function getNestedValue(obj, path) {
+    return path.split(".").reduce((acc, part) => acc && acc[part] !== undefined ? acc[part] : null, obj);
+  }
+
+  function autoDetectObjectArray(obj) {
+    const candidates = [];
+    function scan(node, currentPath, depth) {
+      if (depth > 4) return;
+      if (typeof node !== "object" || node === null) return;
+      for (const key of Object.keys(node)) {
+        const childPath = currentPath ? `${currentPath}.${key}` : key;
+        const val = node[key];
+        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object" && val[0] !== null) {
+          candidates.push({ path: childPath, depth, count: val.length, array: val });
+        } else if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+          scan(val, childPath, depth + 1);
+        }
+      }
+    }
+    scan(obj, "", 0);
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => a.depth - b.depth || b.count - a.count);
+    return candidates[0];
+  }
+
+  // ── Flattening Core ──────────────────────────────────────────────────────
+  function getMaxDepth() {
+    if (activeFlatten === "none") return 0;
+    if (activeFlatten === "full") return null;
+    if (activeFlatten.startsWith("depth:")) return parseInt(activeFlatten.split(":")[1], 10);
+    return 2;
+  }
+
+  function flattenValue(val, prefix, depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian) {
+    if (val === null || val === undefined) return [{ [prefix]: "" }];
+    if (typeof val === "boolean") return [{ [prefix]: val ? "true" : "false" }];
+    if (typeof val === "number" || typeof val === "string") return [{ [prefix]: String(val) }];
+
+    if (Array.isArray(val)) {
+      if (arrayStrategy === "explode") {
+        if (val.length === 0) return [{ [prefix]: "" }];
+        const rows = [];
+        for (const item of val) {
+          rows.push(...flattenValue(item, prefix, depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian));
+        }
+        return rows;
+      } else if (arrayStrategy === "join") {
+        const joined = val.map(i => (typeof i === "object" && i !== null ? JSON.stringify(i) : (i ?? ""))).join(arrayDelim);
+        return [{ [prefix]: joined }];
+      } else if (arrayStrategy === "columns") {
+        if (val.length > arrayCap) return [{ [prefix]: JSON.stringify(val) }];
+        let rows = [{}];
+        val.forEach((item, idx) => {
+          const subPrefix = prefix ? `${prefix}_${idx}` : String(idx);
+          const subRows = flattenValue(item, subPrefix, depth + 1, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian);
+          rows = mergeRows(rows, subRows, allowCartesian);
+        });
+        return rows;
+      } else {
+        return [{ [prefix]: JSON.stringify(val) }];
+      }
+    }
+
+    if (typeof val === "object") {
+      if (maxDepth !== null && depth >= maxDepth) return [{ [prefix]: JSON.stringify(val) }];
+      const keys = Object.keys(val);
+      if (keys.length === 0) return [{ [prefix]: "{}" }];
+      let rows = [{}];
+      for (const key of keys) {
+        const subPrefix = prefix ? `${prefix}.${key}` : key;
+        const subRows = flattenValue(val[key], subPrefix, depth + 1, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian);
+        rows = mergeRows(rows, subRows, allowCartesian);
+      }
+      return rows;
+    }
+
+    return [{ [prefix]: String(val) }];
+  }
+
+  function mergeRows(left, right, allowCartesian) {
+    if (left.length > 1 && right.length > 1 && !allowCartesian) {
+      console.warn("Cartesian product warning: multiple exploded arrays encountered.");
+    }
+    const merged = [];
+    for (const l of left) {
+      for (const r of right) {
+        merged.push({ ...l, ...r });
+      }
+    }
+    return merged;
+  }
+
+  function flattenRecord(record) {
+    const maxDepth = getMaxDepth();
+    const arrayCap = parseInt(arrayCapNode.value, 10) || 10;
+    const arrayDelim = arrayDelimNode.value || "; ";
+    const allowCartesian = allowCartesianNode.checked;
+    return flattenValue(record, "", 0, maxDepth, activeArrayStrategy, arrayCap, arrayDelim, allowCartesian);
+  }
+
+  // ── Actions ──────────────────────────────────────────────────────────────
+  btnDryRun.addEventListener("click", () => runProcessing({ dryRun: true }));
+  btnConvert.addEventListener("click", () => runProcessing({ dryRun: false }));
+
+  async function runProcessing({ dryRun }) {
+    if (isConverting || parsedRecords.length === 0) return;
+    isConverting = true;
+    btnConvert.disabled = true;
+    btnDryRun.disabled = true;
+
+    const started = performance.now();
+    const colSet = new Set();
+    const allFlattenedRows = [];
+
+    // Process records in chunks
+    const chunkSize = 250;
+    for (let i = 0; i < parsedRecords.length; i += chunkSize) {
+      const slice = parsedRecords.slice(i, i + chunkSize);
+      for (const rec of slice) {
+        const rows = flattenRecord(rec);
+        for (const row of rows) {
+          for (const key of Object.keys(row)) colSet.add(key);
+          if (!dryRun) allFlattenedRows.push(row);
+        }
+      }
+      const elapsedSec = ((performance.now() - started) / 1000).toFixed(1);
+      elapsedNode.textContent = `${elapsedSec}s`;
+      meterRecordsBar.style.width = `${Math.min(100, Math.round(((i + slice.length) / parsedRecords.length) * 100))}%`;
+      meterSpeedVal.textContent = `${Math.round((i + slice.length) / Math.max(0.1, (performance.now() - started) / 1000))} rows/s`;
+      await new Promise(r => setTimeout(r, 0));
+    }
+
+    discoveredColumns = Array.from(colSet).sort();
+    tabColCount.textContent = discoveredColumns.length;
+    meterColsVal.textContent = `${discoveredColumns.length} cols`;
+    meterColsBar.style.width = "100%";
+
+    // Render columns view
+    colChipList.replaceChildren();
+    discoveredColumns.forEach(col => {
+      const chip = document.createElement("div");
+      chip.className = "col-chip";
+      chip.textContent = col;
+      colChipList.appendChild(chip);
+    });
+
+    if (dryRun) {
+      alert(`Dry run complete: discovered ${discoveredColumns.length} columns across ${parsedRecords.length} records in ${((performance.now() - started) / 1000).toFixed(2)}s.`);
+    } else {
+      // Build CSV
+      const quoteAll = quoteAllNode.checked;
+      const csvLines = [];
+      csvLines.push(discoveredColumns.map(c => escapeCsvCell(c, quoteAll)).join(","));
+
+      for (const row of allFlattenedRows) {
+        const line = discoveredColumns.map(col => escapeCsvCell(row[col] ?? "", quoteAll)).join(",");
+        csvLines.push(line);
+      }
+
+      generatedCsv = csvLines.join("\r\n");
+      rawTextarea.value = csvLines.slice(0, 50).join("\r\n") + (csvLines.length > 50 ? `\n... [${csvLines.length - 50} more rows]` : "");
+
+      // Render Table Preview
+      renderTablePreview(allFlattenedRows.slice(0, 50), discoveredColumns);
+
+      // Trigger instant download
+      triggerDownload();
+    }
+
+    const totalSec = ((performance.now() - started) / 1000).toFixed(2);
+    elapsedNode.textContent = `${totalSec}s`;
+    isConverting = false;
+    btnConvert.disabled = false;
+    btnDryRun.disabled = false;
+  }
+
+  function escapeCsvCell(val, quoteAll) {
+    const str = String(val);
+    const mustQuote = quoteAll || str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r");
+    if (mustQuote) return `"${str.replace(/"/g, '""')}"`;
+    return str;
+  }
+
+  function renderTablePreview(rows, cols) {
+    emptyState.style.display = "none";
+    previewTable.style.display = "table";
+
+    tableHead.replaceChildren();
+    const headRow = document.createElement("tr");
+    cols.forEach(c => {
+      const th = document.createElement("th");
+      th.textContent = c;
+      headRow.appendChild(th);
+    });
+    tableHead.appendChild(headRow);
+
+    tableBody.replaceChildren();
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      cols.forEach(c => {
+        const td = document.createElement("td");
+        td.textContent = r[c] ?? "";
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
+  }
+
+  function triggerDownload() {
+    const addBom = excelBomNode.checked;
+    const blobParts = addBom ? ["\uFEFF", generatedCsv] : [generatedCsv];
+    const blob = new Blob(blobParts, { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const outName = currentFile ? currentFile.name.replace(/\.[^/.]+$/, "") + ".csv" : "converted.csv";
+    a.href = url;
+    a.download = outName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  btnDownloadRaw.addEventListener("click", triggerDownload);
+
+  btnCopyCols.addEventListener("click", () => {
+    navigator.clipboard.writeText(discoveredColumns.join(", "));
+    alert("Copied " + discoveredColumns.length + " column names to clipboard.");
+  });
+
+  // CyberChef Air-Gap Standalone Download
+  document.getElementById("btn-airgap-dl").addEventListener("click", () => {
+    const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "flatJSON2csv_airgap.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Interactive Demo Loader
+  const DEMO_DATA = {
+    status: "ok",
+    data: {
+      content: [
+        {
+          id: "CT-001",
+          name: "Fortiphyd Water Treatment Fix",
+          author: "ted",
+          status: "VERIFIED",
+          tags: ["water", "scada", "plc", "modbus"],
+          sizingStats: { cpu: 4, ramMb: 8192, diskGb: 80, containers: 2 },
+          versionInfo: { version: "2.4.1", platformVersion: "3.15" }
+        },
+        {
+          id: "CT-002",
+          name: "Substation IEC-61850 Grid Defense",
+          author: "ted",
+          status: "TESTING",
+          tags: ["grid", "substation", "goose"],
+          sizingStats: { cpu: 8, ramMb: 16384, diskGb: 160, containers: 4 },
+          versionInfo: { version: "1.0.0", platformVersion: "3.15" }
+        },
+        {
+          id: "CT-003",
+          name: "Corporate Perimeter Firewall & DMZ",
+          author: "alex",
+          status: "VERIFIED",
+          tags: ["firewall", "dmz", "pfsense", "snort"],
+          sizingStats: { cpu: 2, ramMb: 4096, diskGb: 40, containers: 1 },
+          versionInfo: { version: "3.0.2", platformVersion: "3.14" }
+        }
+      ]
+    }
+  };
+
+  document.getElementById("btn-load-demo").addEventListener("click", () => {
+    currentFile = { name: "sample_cloudtemplates_demo.json", size: JSON.stringify(DEMO_DATA).length };
+    rawText = JSON.stringify(DEMO_DATA, null, 2);
+    dropzoneText.textContent = "sample_cloudtemplates_demo.json";
+    meterFileVal.textContent = "sample_cloudtemplates_demo.json (Demo)";
+    meterFileBar.style.width = "100%";
+    btnConvert.disabled = false;
+    btnDryRun.disabled = false;
+    parseInputData();
+  });
+
+  // Register Service Worker for offline PWA caching
+  if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.debug('SW reg skipped:', err));
+    });
+  }
+})();
+</script>
+</body>
+</html>
+
