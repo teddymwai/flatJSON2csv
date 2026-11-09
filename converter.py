@@ -401,7 +401,15 @@ def run_conversion(
         record_path = "" if single_root_object else f"{array_path}.*" if array_path else "*"
         for record in iter_records(source, settings, array_path, single_root_object):
             for row in flatten_record(record, settings, record_path):
-                writer.writerow(row)
+                clean_row = {
+                    key: (
+                        value.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+                        if isinstance(value, str)
+                        else value
+                    )
+                    for key, value in row.items()
+                }
+                writer.writerow(clean_row)
                 row_count += 1
                 if verbose and row_count % 10000 == 0:
                     elapsed = time.monotonic() - started

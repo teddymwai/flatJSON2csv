@@ -10,6 +10,8 @@ The converter operates in a streaming, two-pass model:
 
 Passing explicit columns via `--columns` skips Pass 1 entirely, streaming directly to disk. Memory usage remains bounded by the single largest record rather than the overall file size.
 
+Line breaks inside cell values are replaced with spaces in CSV output so each record stays on one physical line for line-oriented readers. This applies to both the CLI and browser converter.
+
 ---
 
 ## Requirements and Installation

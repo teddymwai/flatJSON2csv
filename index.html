@@ -1135,7 +1135,7 @@
   }
 
   function escapeCsvCell(val, quoteAll) {
-    const str = String(val);
+    const str = String(val).replace(/\r\n|\r|\n/g, " ");
     const mustQuote = quoteAll || str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r");
     if (mustQuote) return `"${str.replace(/"/g, '""')}"`;
     return str;
@@ -1178,7 +1178,7 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 
   btnDownloadRaw.addEventListener("click", triggerDownload);
@@ -1199,7 +1199,7 @@
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   });
 
   // Interactive Demo Loader
