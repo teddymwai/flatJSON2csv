@@ -58,3 +58,4 @@ Key milestones delivered in this release:
 - **Unit Test Suite:** 12/12 passing tests in `tests/test_flatjson.py` including `test_xlsx_export` and `test_cli_xlsx_format_flag`.
 - **Spreadsheet Verification:** Generated spreadsheets verified via `openpyxl.load_workbook()` ensuring structural compliance, dimension accuracy (`A1:AM1051`), and exact cell value fidelity.
 - **JavaScript Syntax:** 100% valid script compilation confirmed across all web distributions.
+
