@@ -15,6 +15,7 @@
     --brand-moss:    #33533C;                /* Lush moss/pine intermediate green */
     --amber-jungle:  #735817;                /* Warm antique bronze / amber jungle */
     --gold-rich:     #FBAB04;                /* Rich gold / amber highlight */
+    --copper:        #A96C4F;                /* Earthy terracotta / copper */
     --champagne:     #C7B9A1;                /* Luxury sand / champagne neutral */
 
     --bg:            #080f0b;                /* Obsidian canvas with subtle forest undertone */
@@ -468,6 +469,277 @@
     color: var(--text);
     font-weight: 600;
     border: 1px solid var(--border-subtle);
+  }
+
+  /* ── Dynamic Column Filter Drawer & Popover ───────────────────────────── */
+  .col-filter-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+
+  .filter-dropdown-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--surface2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 4px 10px;
+    font-family: var(--font-ui);
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-sand);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    height: 28px;
+  }
+
+  .filter-dropdown-btn:hover {
+    border-color: var(--champagne);
+    color: var(--text);
+    background: rgba(8, 15, 11, 0.95);
+  }
+
+  .filter-dropdown-btn:active {
+    transform: scale(0.98);
+  }
+
+  .filter-dropdown-btn.has-filter {
+    border-color: var(--accent-light);
+    background: rgba(14, 63, 42, 0.35);
+    color: var(--text);
+    box-shadow: 0 0 10px rgba(46, 145, 101, 0.2);
+  }
+
+  .filter-dropdown-btn.is-exclude {
+    border-color: var(--copper);
+    background: rgba(169, 108, 79, 0.2);
+    color: var(--warn);
+    box-shadow: 0 0 10px rgba(169, 108, 79, 0.25);
+  }
+
+  .filter-badge-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    background: var(--accent);
+    color: #fff;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    line-height: 1.3;
+  }
+
+  .filter-badge-count.exclude-mode {
+    background: var(--copper);
+    color: #fff;
+  }
+
+  /* Popover Container */
+  .filter-popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 1000;
+    width: 330px;
+    background: #0e1813;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    display: none;
+    flex-direction: column;
+    gap: 9px;
+    backdrop-filter: blur(16px);
+  }
+
+  .filter-popover.open {
+    display: flex;
+    animation: popover-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes popover-in {
+    from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .filter-popover-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 7px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 8px;
+  }
+
+  .filter-popover-title {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--champagne);
+    font-weight: 600;
+  }
+
+  /* Mode Switch: Include vs Exclude */
+  .mode-switch-wrap {
+    display: flex;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 2px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mode-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-family: var(--font-ui);
+    font-size: 10.5px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .mode-btn.active[data-mode="INCLUDE"] {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .mode-btn.active[data-mode="EXCLUDE"] {
+    background: var(--copper);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .filter-quick-actions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .quick-btn {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface2);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-sand);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .quick-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+  }
+
+  /* Items Checklist */
+  .filter-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 290px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .filter-items-list::-webkit-scrollbar { width: 4px; }
+  .filter-items-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .filter-item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s ease;
+  }
+
+  .filter-item-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .filter-item-row.selected {
+    background: rgba(46, 145, 101, 0.15);
+  }
+
+  .filter-item-row.selected.exclude-selected {
+    background: rgba(169, 108, 79, 0.18);
+  }
+
+  .filter-item-checkbox {
+    width: 15px;
+    height: 15px;
+    border-radius: 4px;
+    border: 1.5px solid var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    font-size: 11px;
+    background: transparent;
+  }
+
+  .filter-item-row.selected .filter-item-checkbox {
+    border-color: var(--accent-light);
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .filter-item-row.selected.exclude-selected .filter-item-checkbox {
+    border-color: var(--warn);
+    background: var(--copper);
+    color: #fff;
+  }
+
+  .filter-item-icon {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .filter-item-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .filter-item-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--champagne);
+    background: rgba(0, 0, 0, 0.35);
+    padding: 1px 6px;
+    border-radius: 9999px;
+  }
+
+  .col-chip.excluded-filter {
+    text-decoration: line-through;
+    opacity: 0.45;
+    border-style: dashed !important;
+  }
+
+  .col-chip.active-filter {
+    box-shadow: 0 0 0 1.5px var(--accent-light);
+    filter: brightness(1.15);
+    font-weight: 600;
   }
 
   #table-container {
@@ -1380,10 +1652,46 @@
           </button>
         </div>
 
-        <!-- In-Table Column Filter -->
-        <div style="display:flex; align-items:center; gap:6px; margin-left:auto; margin-right:8px;">
-          <span class="material-symbols-outlined" style="font-size:14px; color:var(--muted);">filter_alt</span>
-          <input type="text" id="col-filter-input" placeholder="Filter columns..." class="text-input" style="height:26px; font-size:11px; padding:2px 8px; width:130px; border-radius:var(--radius-sm);" data-tooltip="Type to filter visible table columns in real time." data-tooltip-title="Column Filter">
+        <!-- Dynamic Column Filter Drawer Trigger & Popover -->
+        <div class="col-filter-wrapper" id="col-filter-wrapper" style="margin-left:auto; margin-right:8px;">
+          <button type="button" id="col-filter-btn" class="filter-dropdown-btn" data-tooltip="Configure multi-column dynamic inclusion or exclusion rules." data-tooltip-title="Dynamic Column Filter">
+            <span class="material-symbols-outlined" style="font-size:15px; color:var(--champagne);">tune</span>
+            <span id="col-filter-btn-label">Columns: All</span>
+            <span id="col-filter-btn-badge" class="filter-badge-count">All</span>
+            <span class="material-symbols-outlined" style="font-size:15px; color:var(--champagne); opacity:0.7;">expand_more</span>
+          </button>
+
+          <!-- Dynamic Column Filter Popover -->
+          <div id="col-filter-popover" class="filter-popover">
+            <div class="filter-popover-head">
+              <span class="filter-popover-title">Dynamic Column Filter</span>
+              <div class="mode-switch-wrap">
+                <button type="button" class="mode-btn active" id="col-mode-include" data-mode="INCLUDE" data-tooltip="Display and export only selected columns." data-tooltip-title="Include Mode">
+                  <span class="material-symbols-outlined" style="font-size:12px;">check_circle</span> Include
+                </button>
+                <button type="button" class="mode-btn" id="col-mode-exclude" data-mode="EXCLUDE" data-tooltip="Hide and omit selected columns from preview and export." data-tooltip-title="Exclude Mode">
+                  <span class="material-symbols-outlined" style="font-size:12px;">do_not_disturb_on</span> Exclude
+                </button>
+              </div>
+            </div>
+
+            <!-- Search filter inside popover for fast column finding -->
+            <div style="display:flex; align-items:center; gap:6px; background:rgba(0,0,0,0.3); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:4px 8px;">
+              <span class="material-symbols-outlined" style="font-size:13px; color:var(--muted);">search</span>
+              <input type="text" id="col-filter-search" placeholder="Search columns..." style="background:transparent; border:none; outline:none; font-family:var(--font-mono); font-size:11px; color:var(--text); width:100%;">
+              <button type="button" id="col-filter-search-clear" style="background:none; border:none; color:var(--muted); font-size:13px; cursor:pointer; display:none; padding:0 2px;">&times;</button>
+            </div>
+
+            <div class="filter-quick-actions">
+              <button type="button" class="quick-btn" id="col-quick-all" data-tooltip="Show all columns across the dataset." data-tooltip-title="All Columns">All</button>
+              <button type="button" class="quick-btn" id="col-quick-clear" data-tooltip="Clear active column selection." data-tooltip-title="Clear Selection">Clear</button>
+              <button type="button" class="quick-btn" id="col-quick-invert" data-tooltip="Invert the current column selection." data-tooltip-title="Invert Selection">Invert</button>
+            </div>
+
+            <div class="filter-items-list" id="col-filter-items-list">
+              <!-- Populated dynamically with column rows -->
+            </div>
+          </div>
         </div>
 
         <div style="display:flex; gap:6px;">
@@ -1752,7 +2060,18 @@
   const btnCopyCols = document.getElementById("btn-copy-cols");
   const btnDownloadRaw = document.getElementById("btn-download-raw");
   const btnDownloadRawXlsx = document.getElementById("btn-download-raw-xlsx");
-  const colFilterInput = document.getElementById("col-filter-input");
+  const colFilterBtn = document.getElementById("col-filter-btn");
+  const colFilterBtnLabel = document.getElementById("col-filter-btn-label");
+  const colFilterBtnBadge = document.getElementById("col-filter-btn-badge");
+  const colFilterPopover = document.getElementById("col-filter-popover");
+  const colModeInclude = document.getElementById("col-mode-include");
+  const colModeExclude = document.getElementById("col-mode-exclude");
+  const colFilterSearch = document.getElementById("col-filter-search");
+  const colFilterSearchClear = document.getElementById("col-filter-search-clear");
+  const colQuickAll = document.getElementById("col-quick-all");
+  const colQuickClear = document.getElementById("col-quick-clear");
+  const colQuickInvert = document.getElementById("col-quick-invert");
+  const colFilterItemsList = document.getElementById("col-filter-items-list");
 
   let activeFlatten = "depth:2";
   let activeArrayStrategy = "json";
@@ -1760,6 +2079,9 @@
   let rawJsonRoot = null;
   let treeNeedsUpdate = false;
   let currentHighlightedWord = null;
+  let colFilterMode = "INCLUDE"; // "INCLUDE" or "EXCLUDE"
+  let selectedFilterColumns = new Set();
+  let colSearchFilter = "";
 
   // ── Singleton Tooltip Manager ────────────────────────────────────────────
   const tooltipEl = document.createElement("div");
@@ -1925,23 +2247,164 @@
     }
   });
 
-  // ── Real-Time In-Table Column Filter ────────────────────────────────────
-  if (colFilterInput) {
-    colFilterInput.addEventListener("input", () => {
-      activeColumnFilter = colFilterInput.value.trim().toLowerCase();
-      applyColumnFilter();
+  // ── Dynamic Column Projection & Filter Engine ───────────────────────────
+  function getActiveColumns() {
+    if (!discoveredColumns || discoveredColumns.length === 0) return [];
+    if (colFilterMode === "INCLUDE") {
+      if (selectedFilterColumns.size === 0) {
+        return [...discoveredColumns];
+      }
+      return discoveredColumns.filter(c => selectedFilterColumns.has(c));
+    } else {
+      if (selectedFilterColumns.size === 0) {
+        return [...discoveredColumns];
+      }
+      return discoveredColumns.filter(c => !selectedFilterColumns.has(c));
+    }
+  }
+
+  function toggleFilterColumn(col) {
+    if (selectedFilterColumns.has(col)) {
+      selectedFilterColumns.delete(col);
+    } else {
+      selectedFilterColumns.add(col);
+    }
+    updateColumnFilterUI();
+  }
+
+  function renderFilterItemsList() {
+    if (!colFilterItemsList) return;
+    if (!discoveredColumns || discoveredColumns.length === 0) {
+      colFilterItemsList.innerHTML = `
+        <div style="padding:16px 8px; text-align:center; color:var(--muted); font-size:11px;">
+          No columns discovered yet.
+        </div>`;
+      return;
+    }
+
+    const query = colSearchFilter;
+    const filteredCols = query
+      ? discoveredColumns.filter(c => c.toLowerCase().includes(query))
+      : discoveredColumns;
+
+    if (filteredCols.length === 0) {
+      colFilterItemsList.innerHTML = `
+        <div style="padding:16px 8px; text-align:center; color:var(--muted); font-size:11px;">
+          No columns match "${escapeHtml(query)}".
+        </div>`;
+      return;
+    }
+
+    let html = "";
+    filteredCols.forEach(col => {
+      const isSelected = selectedFilterColumns.has(col);
+      const isExcludeSelected = isSelected && colFilterMode === "EXCLUDE";
+      const rowCls = `filter-item-row ${isSelected ? "selected" : ""} ${isExcludeSelected ? "exclude-selected" : ""}`;
+
+      let checkIcon = "";
+      if (isSelected) {
+        if (colFilterMode === "EXCLUDE") {
+          checkIcon = `<span class="material-symbols-outlined" style="font-size:11px; font-weight:700;">remove</span>`;
+        } else {
+          checkIcon = `<span class="material-symbols-outlined" style="font-size:11px; font-weight:700;">check</span>`;
+        }
+      }
+
+      const colIndex = discoveredColumns.indexOf(col) + 1;
+      const modeDesc = colFilterMode === "INCLUDE"
+        ? (isSelected ? "Included in projection" : "Omitted from projection")
+        : (isSelected ? "Excluded from projection" : "Retained in projection");
+
+      html += `
+        <div class="${rowCls}" data-col="${escapeHtml(col)}"
+          data-tooltip="Column ${colIndex} of ${discoveredColumns.length}. ${modeDesc}."
+          data-tooltip-title="${escapeHtml(col)}">
+          <div class="filter-item-checkbox">${checkIcon}</div>
+          <span class="material-symbols-outlined filter-item-icon">schema</span>
+          <span class="filter-item-label">${escapeHtml(col)}</span>
+          <span class="filter-item-count">#${colIndex}</span>
+        </div>`;
     });
+
+    colFilterItemsList.innerHTML = html;
+
+    colFilterItemsList.querySelectorAll(".filter-item-row").forEach(row => {
+      row.addEventListener("click", () => {
+        const col = row.getAttribute("data-col");
+        if (col) toggleFilterColumn(col);
+      });
+    });
+  }
+
+  function updateColumnFilterUI() {
+    const isAll = (selectedFilterColumns.size === 0);
+
+    if (isAll) {
+      if (colFilterBtnLabel) colFilterBtnLabel.textContent = "Columns: All";
+      if (colFilterBtnBadge) {
+        colFilterBtnBadge.textContent = "All";
+        colFilterBtnBadge.className = "filter-badge-count";
+      }
+      if (colFilterBtn) colFilterBtn.classList.remove("has-filter", "is-exclude");
+    } else {
+      const count = selectedFilterColumns.size;
+      if (colFilterMode === "INCLUDE") {
+        if (colFilterBtn) {
+          colFilterBtn.classList.add("has-filter");
+          colFilterBtn.classList.remove("is-exclude");
+        }
+        if (colFilterBtnBadge) {
+          colFilterBtnBadge.className = "filter-badge-count";
+          colFilterBtnBadge.textContent = count;
+        }
+        if (colFilterBtnLabel) {
+          if (count === 1) {
+            const single = Array.from(selectedFilterColumns)[0];
+            colFilterBtnLabel.textContent = `Col: ${single.length > 15 ? single.slice(0, 14) + "…" : single}`;
+          } else {
+            colFilterBtnLabel.textContent = `Filter: ${count} cols`;
+          }
+        }
+      } else {
+        // EXCLUDE mode
+        if (colFilterBtn) {
+          colFilterBtn.classList.add("is-exclude");
+          colFilterBtn.classList.remove("has-filter");
+        }
+        if (colFilterBtnBadge) {
+          colFilterBtnBadge.className = "filter-badge-count exclude-mode";
+          colFilterBtnBadge.textContent = `-${count}`;
+        }
+        if (colFilterBtnLabel) {
+          if (count === 1) {
+            const single = Array.from(selectedFilterColumns)[0];
+            colFilterBtnLabel.textContent = `Excluding: ${single.length > 13 ? single.slice(0, 12) + "…" : single}`;
+          } else {
+            colFilterBtnLabel.textContent = `Excluding: ${count} cols`;
+          }
+        }
+      }
+    }
+
+    if (colModeInclude && colModeExclude) {
+      colModeInclude.classList.toggle("active", colFilterMode === "INCLUDE");
+      colModeExclude.classList.toggle("active", colFilterMode === "EXCLUDE");
+    }
+
+    renderFilterItemsList();
+    applyColumnFilter();
   }
 
   function applyColumnFilter() {
     if (!discoveredColumns || discoveredColumns.length === 0) return;
-    const filter = activeColumnFilter;
+    const activeCols = new Set(getActiveColumns());
+    const isFiltered = activeCols.size !== discoveredColumns.length;
     const ths = tableHead.querySelectorAll("th");
     const trs = tableBody.querySelectorAll("tr");
 
     discoveredColumns.forEach((col, idx) => {
-      const match = !filter || col.toLowerCase().includes(filter);
-      const displayVal = match ? "" : "none";
+      const isVisible = activeCols.has(col);
+      const displayVal = isVisible ? "" : "none";
       if (ths[idx]) ths[idx].style.display = displayVal;
       trs.forEach(tr => {
         const td = tr.children[idx];
@@ -1949,13 +2412,140 @@
       });
     });
 
-    // Also filter column chips
     const chips = colChipList.querySelectorAll(".col-chip");
     chips.forEach(chip => {
-      const match = !filter || chip.textContent.toLowerCase().includes(filter);
-      chip.style.display = match ? "inline-flex" : "none";
+      const colName = chip.getAttribute("data-col") || chip.textContent;
+      const isVisible = activeCols.has(colName);
+      if (!isFiltered) {
+        chip.classList.remove("active-filter", "excluded-filter");
+      } else if (isVisible) {
+        chip.classList.add("active-filter");
+        chip.classList.remove("excluded-filter");
+      } else {
+        chip.classList.remove("active-filter");
+        chip.classList.add("excluded-filter");
+      }
+    });
+
+    if (tabColCount) {
+      tabColCount.textContent = isFiltered ? `${activeCols.size} / ${discoveredColumns.length}` : discoveredColumns.length;
+    }
+    if (meterColsVal) {
+      meterColsVal.textContent = isFiltered ? `${activeCols.size}/${discoveredColumns.length} cols` : `${discoveredColumns.length} cols`;
+    }
+
+    // Live update raw CSV text if data is present
+    if (lastFlattenedRows && lastFlattenedRows.length > 0) {
+      const activeColList = getActiveColumns();
+      const quoteAll = quoteAllNode.checked;
+      const csvLines = [];
+      csvLines.push(activeColList.map(c => escapeCsvCell(c, quoteAll)).join(","));
+      for (const row of lastFlattenedRows) {
+        csvLines.push(activeColList.map(col => escapeCsvCell(row[col] ?? "", quoteAll)).join(","));
+      }
+      generatedCsv = csvLines.join("\r\n");
+      const previewLines = csvLines.slice(0, 25).map(l => l.length > 800 ? l.slice(0, 797) + "…" : l);
+      rawTextarea.value = previewLines.join("\n");
+    }
+  }
+
+  // Column Popover Listeners
+  if (colFilterBtn) {
+    colFilterBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = colFilterPopover.classList.contains("open");
+      if (isOpen) {
+        colFilterPopover.classList.remove("open");
+      } else {
+        colFilterPopover.classList.add("open");
+        renderFilterItemsList();
+        if (colFilterSearch) {
+          setTimeout(() => colFilterSearch.focus(), 60);
+        }
+      }
     });
   }
+
+  if (colFilterPopover) {
+    colFilterPopover.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  if (colModeInclude) {
+    colModeInclude.addEventListener("click", () => {
+      colFilterMode = "INCLUDE";
+      updateColumnFilterUI();
+    });
+  }
+
+  if (colModeExclude) {
+    colModeExclude.addEventListener("click", () => {
+      colFilterMode = "EXCLUDE";
+      updateColumnFilterUI();
+    });
+  }
+
+  if (colQuickAll) {
+    colQuickAll.addEventListener("click", () => {
+      selectedFilterColumns.clear();
+      updateColumnFilterUI();
+    });
+  }
+
+  if (colQuickClear) {
+    colQuickClear.addEventListener("click", () => {
+      selectedFilterColumns.clear();
+      updateColumnFilterUI();
+    });
+  }
+
+  if (colQuickInvert) {
+    colQuickInvert.addEventListener("click", () => {
+      if (!discoveredColumns) return;
+      const newSet = new Set();
+      discoveredColumns.forEach(c => {
+        if (!selectedFilterColumns.has(c)) {
+          newSet.add(c);
+        }
+      });
+      selectedFilterColumns = newSet;
+      updateColumnFilterUI();
+    });
+  }
+
+  if (colFilterSearch) {
+    colFilterSearch.addEventListener("input", () => {
+      colSearchFilter = colFilterSearch.value.trim().toLowerCase();
+      if (colFilterSearchClear) {
+        colFilterSearchClear.style.display = colSearchFilter ? "inline-block" : "none";
+      }
+      renderFilterItemsList();
+    });
+  }
+
+  if (colFilterSearchClear) {
+    colFilterSearchClear.addEventListener("click", () => {
+      colFilterSearch.value = "";
+      colSearchFilter = "";
+      colFilterSearchClear.style.display = "none";
+      renderFilterItemsList();
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (colFilterPopover && colFilterPopover.classList.contains("open")) {
+      if (!colFilterPopover.contains(e.target) && e.target !== colFilterBtn) {
+        colFilterPopover.classList.remove("open");
+      }
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && colFilterPopover && colFilterPopover.classList.contains("open")) {
+      colFilterPopover.classList.remove("open");
+    }
+  });
 
   // ── Tab Navigation ───────────────────────────────────────────────────────
   document.querySelectorAll("#results-tabs .tab-btn").forEach(btn => {
@@ -2067,8 +2657,18 @@
     if (statusProgressBar) statusProgressBar.style.width = "0%";
     elapsedNode.textContent = "0.0s";
     tabColCount.textContent = "0";
-    if (colFilterInput) colFilterInput.value = "";
-    activeColumnFilter = "";
+    selectedFilterColumns.clear();
+    colFilterMode = "INCLUDE";
+    colSearchFilter = "";
+    if (colFilterSearch) colFilterSearch.value = "";
+    if (colFilterSearchClear) colFilterSearchClear.style.display = "none";
+    if (colFilterPopover) colFilterPopover.classList.remove("open");
+    if (colFilterBtnLabel) colFilterBtnLabel.textContent = "Columns: All";
+    if (colFilterBtnBadge) {
+      colFilterBtnBadge.textContent = "All";
+      colFilterBtnBadge.className = "filter-badge-count";
+    }
+    if (colFilterBtn) colFilterBtn.classList.remove("has-filter", "is-exclude");
     tableHead.replaceChildren();
     tableBody.replaceChildren();
     colChipList.replaceChildren();
@@ -2433,11 +3033,18 @@
       discoveredColumns.forEach(col => {
         const chip = document.createElement("div");
         chip.className = "col-chip";
+        chip.setAttribute("data-col", col);
         chip.textContent = col;
-        chip.setAttribute("data-tooltip", "Column: " + col);
-        chip.setAttribute("data-tooltip-title", "Discovered Column");
+        chip.setAttribute("data-tooltip", "Click to toggle column in dynamic filter.");
+        chip.setAttribute("data-tooltip-title", "Column: " + col);
+        chip.addEventListener("click", () => {
+          toggleFilterColumn(col);
+        });
         colChipList.appendChild(chip);
       });
+
+      // Update Column Filter Drawer & Items
+      updateColumnFilterUI();
 
       if (dryRun) {
         document.querySelector('[data-tab="columns"]').click();
@@ -2738,7 +3345,9 @@
     }
     try {
       showLoading("Generating native Excel spreadsheet...");
-      const xlsxBytes = buildXlsx(discoveredColumns, lastFlattenedRows);
+      const activeCols = getActiveColumns();
+      const colsToExport = activeCols.length > 0 ? activeCols : discoveredColumns;
+      const xlsxBytes = buildXlsx(colsToExport, lastFlattenedRows);
       const blob = new Blob([xlsxBytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -3165,8 +3774,10 @@
   btnDownloadRaw.addEventListener("click", triggerDownload);
 
   btnCopyCols.addEventListener("click", () => {
-    navigator.clipboard.writeText(discoveredColumns.join(", "));
-    alert("Copied " + discoveredColumns.length + " column names to clipboard.");
+    const activeCols = getActiveColumns();
+    const colsToCopy = activeCols.length > 0 ? activeCols : discoveredColumns;
+    navigator.clipboard.writeText(colsToCopy.join(", "));
+    alert("Copied " + colsToCopy.length + " column names to clipboard.");
   });
 
   // CyberChef Air-Gap Standalone Download
