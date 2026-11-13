@@ -108,8 +108,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.web is not None:
         return launch_web(args.web)
 
-    if not args.input or not args.output:
-        parser.error("the following arguments are required: input, -o/--output (or use --web)")
+    if not args.input:
+        parser.error("input file, glob, or directory is required (or use --web)")
+
+    if not args.output:
+        if args.dry_run:
+            output_spec = "/dev/null"
+        else:
+            in_path = Path(args.input).expanduser()
+            if in_path.is_file():
+                output_spec = str(in_path.with_suffix(".csv"))
+            else:
+                parser.error("-o/--output is required when converting directories or glob patterns")
+    else:
+        output_spec = args.output
 
     try:
         settings = load_config(args.config)
@@ -133,7 +145,7 @@ def main(argv: list[str] | None = None) -> int:
                 settings[key] = value
 
         inputs = discover_inputs(args.input)
-        output = Path(args.output).expanduser()
+        output = Path(output_spec).expanduser()
         multiple = len(inputs) > 1 or (len(inputs) == 1 and inputs[0].parent.is_dir() and Path(args.input).is_dir())
         if multiple and not args.dry_run:
             output.mkdir(parents=True, exist_ok=True)

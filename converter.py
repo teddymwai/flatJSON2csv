@@ -12,6 +12,14 @@ from pathlib import Path
 from typing import Any, Iterator
 
 try:
+    csv.field_size_limit(sys.maxsize)
+except (OverflowError, AttributeError):
+    try:
+        csv.field_size_limit(2147483647)
+    except Exception:
+        pass
+
+try:
     import ijson
 except ImportError as exc:  # pragma: no cover - import message is for end users
     ijson = None
@@ -152,17 +160,15 @@ def resolve_record_array(path: Path, settings: dict[str, Any]) -> tuple[str | No
     object, choose the shallowest array of objects and then the largest at that
     depth. If there is no such array, treat the object as one record.
     """
-    if ijson is None:
-        raise ConverterError(
-            "Missing dependency 'ijson'. Install the local requirements with: python -m pip install -r requirements.txt"
-        ) from _IJSON_IMPORT_ERROR
     if settings.get("input_path"):
         return settings["input_path"], False
-    try:
-        with path.open("rb") as stream:
-            candidates: dict[str, int] = {}
-            first_event = None
-            try:
+
+    # Prefer ijson streaming when available
+    if ijson is not None:
+        try:
+            with path.open("rb") as stream:
+                candidates: dict[str, int] = {}
+                first_event = None
                 for prefix, event, _ in ijson.parse(stream):
                     if first_event is None:
                         first_event = event
@@ -175,28 +181,57 @@ def resolve_record_array(path: Path, settings: dict[str, Any]) -> tuple[str | No
                     if event == "start_map" and prefix.endswith(".item"):
                         array_path = prefix[:-5]
                         candidates[array_path] = candidates.get(array_path, 0) + 1
-            except ConverterError:
-                raise
-            except Exception as exc:
-                raise ConverterError(f"Could not inspect JSON input {path}: {exc}") from exc
-    except OSError:
-        raise
-    if first_event is None:
-        raise ConverterError(f"JSON input is empty: {path}")
+                if first_event is None:
+                    raise ConverterError(f"JSON input is empty: {path}")
+                if not candidates:
+                    return None, True
+                shallowest = min(candidate.count(".") + 1 for candidate in candidates)
+                nearest = {candidate: count for candidate, count in candidates.items() if candidate.count(".") + 1 == shallowest}
+                ordered = sorted(nearest.items(), key=lambda item: (-item[1], item[0]))
+                chosen, count = ordered[0]
+                if len(ordered) > 1:
+                    details = ", ".join(f"{name} ({items} objects)" for name, items in ordered[:6])
+                    print(
+                        f"flatJSON2csv: multiple object arrays found at the nearest level; using {chosen!r} ({count} objects). "
+                        f"Use --input-path to choose another. Candidates: {details}",
+                        file=sys.stderr,
+                    )
+                return chosen, False
+        except ConverterError:
+            raise
+        except Exception:
+            pass  # Fall through to standard library json fallback
+
+    # Standard library fallback (zero third-party dependencies required)
+    try:
+        with path.open("r", encoding=settings.get("encoding", "utf-8"), errors="replace") as stream:
+            data = json.load(stream)
+    except Exception as exc:
+        raise ConverterError(f"Could not parse JSON input {path}: {exc}") from exc
+
+    if isinstance(data, list):
+        return "", False
+    if not isinstance(data, dict):
+        raise ConverterError(f"Expected a JSON array or object at the top level in {path}.")
+
+    candidates = {}
+    def scan(node: Any, current_path: str, depth: int) -> None:
+        if depth > 4 or not isinstance(node, dict):
+            return
+        for k, v in node.items():
+            child = f"{current_path}.{k}" if current_path else k
+            if isinstance(v, list) and v:
+                candidates[child] = len(v)
+            elif isinstance(v, dict):
+                scan(v, child, depth + 1)
+
+    scan(data, "", 0)
     if not candidates:
         return None, True
-    shallowest = min(candidate.count(".") + 1 for candidate in candidates)
-    nearest = {candidate: count for candidate, count in candidates.items() if candidate.count(".") + 1 == shallowest}
+    shallowest = min(c.count(".") + 1 for c in candidates)
+    nearest = {c: count for c, count in candidates.items() if c.count(".") + 1 == shallowest}
     ordered = sorted(nearest.items(), key=lambda item: (-item[1], item[0]))
-    chosen, count = ordered[0]
-    if len(ordered) > 1:
-        details = ", ".join(f"{name} ({items} objects)" for name, items in ordered[:6])
-        print(
-            f"flatJSON2csv: multiple object arrays found at the nearest level; using {chosen!r} ({count} objects). "
-            f"Use --input-path to choose another. Candidates: {details}",
-            file=sys.stderr,
-        )
-    return chosen, False
+    return ordered[0][0], False
 
 
 def iter_records(
@@ -205,36 +240,69 @@ def iter_records(
     record_array_path: str | None = None,
     single_root_object: bool = False,
 ) -> Iterator[Any]:
-    if ijson is None:
-        raise ConverterError(
-            "Missing dependency 'ijson'. Install the local requirements with: python -m pip install -r requirements.txt"
-        ) from _IJSON_IMPORT_ERROR
     is_ndjson = path.suffix.lower() in (".ndjson", ".jsonl")
     if is_ndjson:
         try:
-            with path.open("r", encoding=settings["encoding"]) as stream:
+            with path.open("r", encoding=settings.get("encoding", "utf-8"), errors="replace") as stream:
                 for line_number, line in enumerate(stream, 1):
-                    if line.strip():
+                    stripped = line.strip()
+                    if stripped:
                         try:
-                            yield json.loads(line)
+                            record = json.loads(stripped)
+                            if not isinstance(record, dict):
+                                record = {"value": record}
+                            yield record
                         except json.JSONDecodeError as exc:
                             raise ConverterError(f"{path}:{line_number}: invalid NDJSON: {exc.msg}") from exc
         except UnicodeError as exc:
             raise ConverterError(f"Cannot decode {path} as {settings['encoding']}: {exc}") from exc
         return
-    input_path = settings.get("input_path")
-    prefix = "" if single_root_object else (
-        "item" if record_array_path == "" else f"{record_array_path}.item"
-        if record_array_path is not None else ("item" if not input_path else f"{input_path}.item")
-    )
+
+    # If ijson is available, stream incrementally
+    if ijson is not None:
+        input_path = settings.get("input_path")
+        prefix = "" if single_root_object else (
+            "item" if record_array_path == "" else f"{record_array_path}.item"
+            if record_array_path is not None else ("item" if not input_path else f"{input_path}.item")
+        )
+        try:
+            with path.open("rb") as stream:
+                for record in _stream_json_array(stream, prefix):
+                    if not isinstance(record, dict):
+                        record = {"value": record}
+                    yield record
+            return
+        except Exception:
+            pass  # Fall through to standard library json fallback
+
+    # Standard library fallback
     try:
-        with path.open("rb") as stream:
-            for record in _stream_json_array(stream, prefix):
-                if not isinstance(record, dict):
-                    raise ConverterError(f"Expected each selected record to be an object in {path}.")
-                yield record
-    except OSError:
-        raise
+        with path.open("r", encoding=settings.get("encoding", "utf-8"), errors="replace") as stream:
+            data = json.load(stream)
+    except Exception as exc:
+        raise ConverterError(f"Could not parse JSON input {path}: {exc}") from exc
+
+    if single_root_object:
+        yield data if isinstance(data, dict) else {"value": data}
+        return
+
+    target_path = record_array_path if record_array_path is not None else settings.get("input_path", "")
+    if not target_path:
+        records = data if isinstance(data, list) else [data]
+    else:
+        curr = data
+        for part in target_path.split("."):
+            if isinstance(curr, dict) and part in curr:
+                curr = curr[part]
+            else:
+                curr = []
+                break
+        records = curr if isinstance(curr, list) else [curr]
+
+    for record in records:
+        if not isinstance(record, dict):
+            record = {"value": record}
+        yield record
 
 
 def _override(path: str, settings: dict[str, Any]) -> dict[str, Any]:
@@ -326,7 +394,8 @@ def _flatten_value(value: Any, prefix: str, depth: int, settings: dict[str, Any]
         value = ""
     elif isinstance(value, bool):
         value = "true" if value else "false"
-    return [{prefix: _scalar_cell(value)}]
+    effective_prefix = prefix if prefix else "value"
+    return [{effective_prefix: _scalar_cell(value)}]
 
 
 def _merge_rows(left: list[dict[str, Any]], right: list[dict[str, Any]], allow_cartesian: bool, path: str) -> list[dict[str, Any]]:

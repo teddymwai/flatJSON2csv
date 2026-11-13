@@ -1,5 +1,5 @@
 /* flatJSON2csv Service Worker — Offline Caching (CyberChef model) */
-const CACHE_NAME = 'flatJSON2csv-v2';
+const CACHE_NAME = 'flatJSON2csv-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

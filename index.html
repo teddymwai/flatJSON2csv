@@ -640,22 +640,45 @@
 
     <!-- ── Left Configuration Panel ──────────────────────────────────────── -->
     <aside id="config-panel">
-      <!-- File Selector Dropzone -->
+      <!-- File Selector & Raw Paste Zone -->
       <div>
         <div class="section-label">
-          <span class="material-symbols-outlined" style="font-size:14px;">upload_file</span>
+          <span class="material-symbols-outlined" style="font-size:14px;">input</span>
           Input Dataset
         </div>
-        <div id="dropzone" role="button" tabindex="0">
-          <span class="material-symbols-outlined icon">cloud_upload</span>
-          <span id="dropzone-text">Drop JSON or NDJSON here</span>
-          <span id="dropzone-sub">or click to browse (.json, .ndjson, .jsonl)</span>
-          <input type="file" id="file-input" accept=".json,.ndjson,.jsonl,application/json">
+
+        <div class="chip-group" id="input-mode-chips" style="margin-bottom:8px;">
+          <button type="button" class="chip-btn active" id="chip-mode-file" data-mode="file">Upload File</button>
+          <button type="button" class="chip-btn" id="chip-mode-paste" data-mode="paste">Paste JSON</button>
         </div>
-        <button type="button" id="btn-load-demo" class="btn btn-secondary" style="min-height:30px; padding:0 12px; font-size:11px; width:100%; margin-top:8px;">
-          <span class="material-symbols-outlined" style="font-size:14px;">science</span>
-          Load Sample Dataset
-        </button>
+
+        <div id="file-input-wrapper">
+          <div id="dropzone" role="button" tabindex="0">
+            <span class="material-symbols-outlined icon">cloud_upload</span>
+            <span id="dropzone-text">Drop JSON or NDJSON here</span>
+            <span id="dropzone-sub">or click to browse (.json, .ndjson, .jsonl)</span>
+            <input type="file" id="file-input" accept=".json,.ndjson,.jsonl,application/json">
+          </div>
+        </div>
+
+        <div id="paste-input-wrapper" style="display:none; flex-direction:column; gap:8px;">
+          <textarea id="paste-textarea" class="text-input" placeholder="Paste JSON array, object, or NDJSON lines here (or Cmd+V anywhere)..." style="width:100%; height:124px; font-family:var(--font-mono); font-size:11.5px; resize:vertical; padding:10px; line-height:1.4;"></textarea>
+          <button type="button" id="btn-parse-paste" class="btn btn-primary" style="min-height:30px; font-size:11px; width:100%;">
+            <span class="material-symbols-outlined" style="font-size:14px;">play_arrow</span>
+            Load Pasted JSON
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+          <button type="button" id="btn-load-demo" class="btn btn-secondary" style="min-height:30px; padding:0 8px; font-size:11px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">science</span>
+            Sample Data
+          </button>
+          <button type="button" id="btn-clear-all" class="btn btn-secondary" style="min-height:30px; padding:0 8px; font-size:11px;">
+            <span class="material-symbols-outlined" style="font-size:14px;">refresh</span>
+            Reset
+          </button>
+        </div>
       </div>
 
       <!-- Flattening Strategy -->
@@ -736,19 +759,31 @@
 
     <!-- ── Right Results & Preview Stage ─────────────────────────────────── -->
     <section id="results-stage">
-      <nav id="results-tabs">
-        <button type="button" class="tab-btn active" data-tab="table">
-          <span class="material-symbols-outlined" style="font-size:16px;">table_chart</span>
-          Table Preview
-        </button>
-        <button type="button" class="tab-btn" data-tab="columns">
-          <span class="material-symbols-outlined" style="font-size:16px;">schema</span>
-          Columns (<span id="tab-col-count">0</span>)
-        </button>
-        <button type="button" class="tab-btn" data-tab="raw">
-          <span class="material-symbols-outlined" style="font-size:16px;">code</span>
-          Raw CSV
-        </button>
+      <nav id="results-tabs" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="tab-btn active" data-tab="table">
+            <span class="material-symbols-outlined" style="font-size:16px;">table_chart</span>
+            Table Preview
+          </button>
+          <button type="button" class="tab-btn" data-tab="columns">
+            <span class="material-symbols-outlined" style="font-size:16px;">schema</span>
+            Columns (<span id="tab-col-count">0</span>)
+          </button>
+          <button type="button" class="tab-btn" data-tab="raw">
+            <span class="material-symbols-outlined" style="font-size:16px;">code</span>
+            Raw CSV
+          </button>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="btn-quick-copy" class="btn btn-secondary" style="min-height:30px; padding:0 12px; font-size:11px;" disabled>
+            <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+            Copy CSV
+          </button>
+          <button type="button" id="btn-quick-download" class="btn btn-primary" style="min-height:30px; padding:0 12px; font-size:11px;" disabled>
+            <span class="material-symbols-outlined" style="font-size:14px;">download</span>
+            Download CSV
+          </button>
+        </div>
       </nav>
 
       <!-- Tab 1: Table Preview -->
@@ -800,13 +835,21 @@
   let discoveredColumns = [];
   let generatedCsv = "";
   let isConverting = false;
+  let userExplicitPath = false;
 
   // ── DOM References ───────────────────────────────────────────────────────
   const dropzone = document.getElementById("dropzone");
   const fileInput = document.getElementById("file-input");
   const dropzoneText = document.getElementById("dropzone-text");
+  const fileInputWrapper = document.getElementById("file-input-wrapper");
+  const pasteInputWrapper = document.getElementById("paste-input-wrapper");
+  const pasteTextarea = document.getElementById("paste-textarea");
+  const btnParsePaste = document.getElementById("btn-parse-paste");
+  const btnClearAll = document.getElementById("btn-clear-all");
   const btnConvert = document.getElementById("btn-convert");
   const btnDryRun = document.getElementById("btn-dryrun");
+  const btnQuickCopy = document.getElementById("btn-quick-copy");
+  const btnQuickDownload = document.getElementById("btn-quick-download");
   const elapsedNode = document.getElementById("elapsed");
   const meterFileVal = document.getElementById("meter-file-val");
   const meterFileBar = document.getElementById("meter-file-bar");
@@ -837,12 +880,27 @@
   let activeFlatten = "depth:2";
   let activeArrayStrategy = "json";
 
+  // ── Input Mode Switcher ──────────────────────────────────────────────────
+  document.querySelectorAll("#input-mode-chips .chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#input-mode-chips .chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const mode = btn.dataset.mode;
+      fileInputWrapper.style.display = mode === "file" ? "block" : "none";
+      pasteInputWrapper.style.display = mode === "paste" ? "flex" : "none";
+      if (mode === "paste") pasteTextarea.focus();
+    });
+  });
+
   // ── Chip Toggles ─────────────────────────────────────────────────────────
   document.querySelectorAll("#flatten-chips .chip-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("#flatten-chips .chip-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       activeFlatten = btn.dataset.val;
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, autoTrigger: true });
+      }
     });
   });
 
@@ -851,7 +909,25 @@
       document.querySelectorAll("#array-chips .chip-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       activeArrayStrategy = btn.dataset.val;
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, autoTrigger: true });
+      }
     });
+  });
+
+  [arrayCapNode, arrayDelimNode, allowCartesianNode, quoteAllNode].forEach(node => {
+    node.addEventListener("change", () => {
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, autoTrigger: true });
+      }
+    });
+  });
+
+  inputPathNode.addEventListener("input", () => {
+    userExplicitPath = inputPathNode.value.trim().length > 0;
+    if (rawText) {
+      parseInputData();
+    }
   });
 
   // ── Tab Navigation ───────────────────────────────────────────────────────
@@ -893,6 +969,74 @@
     if (e.target.files.length > 0) handleFile(e.target.files[0]);
   });
 
+  // ── Paste Handling ───────────────────────────────────────────────────────
+  let pasteDebounceTimer = null;
+  pasteTextarea.addEventListener("input", () => {
+    clearTimeout(pasteDebounceTimer);
+    pasteDebounceTimer = setTimeout(() => {
+      const val = pasteTextarea.value.trim();
+      if (val.length > 0) {
+        handlePastedText(val);
+      }
+    }, 350);
+  });
+
+  btnParsePaste.addEventListener("click", () => {
+    const val = pasteTextarea.value.trim();
+    if (val.length > 0) {
+      handlePastedText(val);
+    }
+  });
+
+  // Global paste shortcut: Cmd+V / Ctrl+V anywhere
+  window.addEventListener("paste", e => {
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+    if (activeTag === "input" || activeTag === "textarea") return;
+    const pasted = (e.clipboardData || window.clipboardData).getData("text");
+    if (pasted && (pasted.trim().startsWith("{") || pasted.trim().startsWith("["))) {
+      e.preventDefault();
+      document.getElementById("chip-mode-paste").click();
+      pasteTextarea.value = pasted;
+      handlePastedText(pasted);
+    }
+  });
+
+  // ── Reset All ────────────────────────────────────────────────────────────
+  btnClearAll.addEventListener("click", resetResults);
+
+  function resetResults() {
+    parsedRecords = [];
+    discoveredColumns = [];
+    generatedCsv = "";
+    currentFile = null;
+    rawText = null;
+    userExplicitPath = false;
+    fileInput.value = "";
+    pasteTextarea.value = "";
+    dropzoneText.textContent = "Drop JSON or NDJSON here";
+    meterFileVal.textContent = "None loaded";
+    meterFileBar.style.width = "0%";
+    meterRecordsVal.textContent = "0 records";
+    meterRecordsBar.style.width = "0%";
+    meterColsVal.textContent = "0 cols";
+    meterColsBar.style.width = "0%";
+    meterSpeedVal.textContent = "0 rows/s";
+    meterSpeedBar.style.width = "0%";
+    elapsedNode.textContent = "0.00s";
+    tabColCount.textContent = "0";
+    tableHead.replaceChildren();
+    tableBody.replaceChildren();
+    colChipList.replaceChildren();
+    rawTextarea.value = "";
+    emptyState.style.display = "flex";
+    previewTable.style.display = "none";
+    btnConvert.disabled = true;
+    btnDryRun.disabled = true;
+    btnQuickCopy.disabled = true;
+    btnQuickDownload.disabled = true;
+    inputPathNode.value = "";
+  }
+
   function formatBytes(bytes) {
     if (bytes < 1024) return bytes + " B";
     if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
@@ -904,74 +1048,141 @@
     dropzoneText.textContent = file.name;
     meterFileVal.textContent = `${file.name} (${formatBytes(file.size)})`;
     meterFileBar.style.width = "100%";
-    btnConvert.disabled = false;
-    btnDryRun.disabled = false;
-
-    // Read initial preview
+    if (!userExplicitPath) inputPathNode.value = "";
     rawText = await file.text();
+    parseInputData();
+  }
+
+  function handlePastedText(text) {
+    currentFile = { name: "pasted_dataset.json", size: new Blob([text]).size };
+    rawText = text;
+    dropzoneText.textContent = "Pasted JSON Data";
+    meterFileVal.textContent = `Pasted (${formatBytes(currentFile.size)})`;
+    meterFileBar.style.width = "100%";
+    if (!userExplicitPath) inputPathNode.value = "";
     parseInputData();
   }
 
   function parseInputData() {
     parsedRecords = [];
-    const isNdjson = currentFile.name.endsWith(".ndjson") || currentFile.name.endsWith(".jsonl");
+    if (!rawText || !rawText.trim()) {
+      resetResults();
+      return;
+    }
 
-    if (isNdjson) {
-      const lines = rawText.split(/\r?\n/);
+    let text = rawText.trim();
+    if (text.charCodeAt(0) === 0xFEFF) {
+      text = text.slice(1).trim();
+    }
+
+    const isNdjsonExtension = currentFile && (currentFile.name.endsWith(".ndjson") || currentFile.name.endsWith(".jsonl"));
+    let parsedSuccessfully = false;
+
+    if (isNdjsonExtension) {
+      const lines = text.split(/\r?\n/);
       for (const line of lines) {
         if (line.trim()) {
           try {
             parsedRecords.push(JSON.parse(line));
-          } catch (err) {
-            console.error("NDJSON line parse error", err);
-          }
+          } catch (err) {}
         }
       }
-    } else {
+      if (parsedRecords.length > 0) parsedSuccessfully = true;
+    }
+
+    if (!parsedSuccessfully) {
       try {
-        const root = JSON.parse(rawText);
+        const root = JSON.parse(text);
+        parsedSuccessfully = true;
         if (Array.isArray(root)) {
           parsedRecords = root;
+          if (!userExplicitPath) inputPathNode.value = "";
         } else if (typeof root === "object" && root !== null) {
           const manualPath = inputPathNode.value.trim();
-          if (manualPath) {
-            const resolved = getNestedValue(root, manualPath);
-            if (Array.isArray(resolved)) parsedRecords = resolved;
+          let resolved = manualPath ? getNestedValue(root, manualPath) : null;
+          if (resolved !== null && resolved !== undefined) {
+            if (Array.isArray(resolved)) {
+              parsedRecords = resolved;
+            } else if (typeof resolved === "object") {
+              parsedRecords = [resolved];
+            } else {
+              parsedRecords = [{ value: resolved }];
+            }
           } else {
-            // Auto-detect shallowest array of objects
-            const detected = autoDetectObjectArray(root);
+            const detected = autoDetectRecordArray(root);
             if (detected) {
               parsedRecords = detected.array;
-              inputPathNode.value = detected.path;
+              if (!userExplicitPath) inputPathNode.value = detected.path;
             } else {
               parsedRecords = [root];
+              if (!userExplicitPath) inputPathNode.value = "";
             }
           }
+        } else {
+          parsedRecords = [{ value: root }];
+          if (!userExplicitPath) inputPathNode.value = "";
         }
-      } catch (err) {
-        alert("Could not parse JSON: " + err.message);
-        return;
+      } catch (jsonErr) {
+        // Fallback: try parsing as line-by-line NDJSON
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        const ndjsonItems = [];
+        let validLines = 0;
+        for (const line of lines) {
+          try {
+            ndjsonItems.push(JSON.parse(line));
+            validLines++;
+          } catch (e) {
+            break;
+          }
+        }
+        if (validLines > 0 && validLines === lines.length) {
+          parsedRecords = ndjsonItems;
+          parsedSuccessfully = true;
+        } else {
+          alert("Could not parse JSON or NDJSON: " + jsonErr.message);
+          return;
+        }
       }
     }
 
+    // Normalize: wrap any top-level primitive array elements into objects
+    parsedRecords = parsedRecords.map(item => {
+      if (typeof item !== "object" || item === null) {
+        return { value: item };
+      }
+      return item;
+    });
+
     meterRecordsVal.textContent = `${parsedRecords.length} records`;
     meterRecordsBar.style.width = parsedRecords.length > 0 ? "100%" : "0%";
+
+    if (parsedRecords.length > 0) {
+      btnConvert.disabled = false;
+      btnDryRun.disabled = false;
+      btnQuickCopy.disabled = false;
+      btnQuickDownload.disabled = false;
+      runProcessing({ dryRun: false, autoTrigger: true });
+    } else {
+      emptyState.style.display = "flex";
+      previewTable.style.display = "none";
+    }
   }
 
   function getNestedValue(obj, path) {
     return path.split(".").reduce((acc, part) => acc && acc[part] !== undefined ? acc[part] : null, obj);
   }
 
-  function autoDetectObjectArray(obj) {
+  function autoDetectRecordArray(obj) {
     const candidates = [];
     function scan(node, currentPath, depth) {
-      if (depth > 4) return;
+      if (depth > 5) return;
       if (typeof node !== "object" || node === null) return;
       for (const key of Object.keys(node)) {
         const childPath = currentPath ? `${currentPath}.${key}` : key;
         const val = node[key];
-        if (Array.isArray(val) && val.length > 0 && typeof val[0] === "object" && val[0] !== null) {
-          candidates.push({ path: childPath, depth, count: val.length, array: val });
+        if (Array.isArray(val) && val.length > 0) {
+          const hasObjects = typeof val[0] === "object" && val[0] !== null;
+          candidates.push({ path: childPath, depth, count: val.length, hasObjects, array: val });
         } else if (typeof val === "object" && val !== null && !Array.isArray(val)) {
           scan(val, childPath, depth + 1);
         }
@@ -979,7 +1190,10 @@
     }
     scan(obj, "", 0);
     if (candidates.length === 0) return null;
-    candidates.sort((a, b) => a.depth - b.depth || b.count - a.count);
+    candidates.sort((a, b) => {
+      if (a.hasObjects !== b.hasObjects) return a.hasObjects ? -1 : 1;
+      return a.depth - b.depth || b.count - a.count;
+    });
     return candidates[0];
   }
 
@@ -992,23 +1206,23 @@
   }
 
   function flattenValue(val, prefix, depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian) {
-    if (val === null || val === undefined) return [{ [prefix]: "" }];
-    if (typeof val === "boolean") return [{ [prefix]: val ? "true" : "false" }];
-    if (typeof val === "number" || typeof val === "string") return [{ [prefix]: String(val) }];
+    if (val === null || val === undefined) return [{ [prefix || "value"]: "" }];
+    if (typeof val === "boolean") return [{ [prefix || "value"]: val ? "true" : "false" }];
+    if (typeof val === "number" || typeof val === "string") return [{ [prefix || "value"]: String(val) }];
 
     if (Array.isArray(val)) {
       if (arrayStrategy === "explode") {
-        if (val.length === 0) return [{ [prefix]: "" }];
+        if (val.length === 0) return [{ [prefix || "value"]: "" }];
         const rows = [];
         for (const item of val) {
-          rows.push(...flattenValue(item, prefix, depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian));
+          rows.push(...flattenValue(item, prefix || "value", depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian));
         }
         return rows;
       } else if (arrayStrategy === "join") {
         const joined = val.map(i => (typeof i === "object" && i !== null ? JSON.stringify(i) : (i ?? ""))).join(arrayDelim);
-        return [{ [prefix]: joined }];
+        return [{ [prefix || "value"]: joined }];
       } else if (arrayStrategy === "columns") {
-        if (val.length > arrayCap) return [{ [prefix]: JSON.stringify(val) }];
+        if (val.length > arrayCap) return [{ [prefix || "value"]: JSON.stringify(val) }];
         let rows = [{}];
         val.forEach((item, idx) => {
           const subPrefix = prefix ? `${prefix}_${idx}` : String(idx);
@@ -1017,14 +1231,14 @@
         });
         return rows;
       } else {
-        return [{ [prefix]: JSON.stringify(val) }];
+        return [{ [prefix || "value"]: JSON.stringify(val) }];
       }
     }
 
     if (typeof val === "object") {
-      if (maxDepth !== null && depth >= maxDepth) return [{ [prefix]: JSON.stringify(val) }];
+      if (maxDepth !== null && depth >= maxDepth) return [{ [prefix || "value"]: JSON.stringify(val) }];
       const keys = Object.keys(val);
-      if (keys.length === 0) return [{ [prefix]: "{}" }];
+      if (keys.length === 0) return [{ [prefix || "value"]: "{}" }];
       let rows = [{}];
       for (const key of keys) {
         const subPrefix = prefix ? `${prefix}.${key}` : key;
@@ -1034,7 +1248,7 @@
       return rows;
     }
 
-    return [{ [prefix]: String(val) }];
+    return [{ [prefix || "value"]: String(val) }];
   }
 
   function mergeRows(left, right, allowCartesian) {
@@ -1061,8 +1275,30 @@
   // ── Actions ──────────────────────────────────────────────────────────────
   btnDryRun.addEventListener("click", () => runProcessing({ dryRun: true }));
   btnConvert.addEventListener("click", () => runProcessing({ dryRun: false }));
+  btnQuickDownload.addEventListener("click", triggerDownload);
+  btnQuickCopy.addEventListener("click", copyCsvToClipboard);
 
-  async function runProcessing({ dryRun }) {
+  async function copyCsvToClipboard() {
+    if (!generatedCsv) {
+      if (parsedRecords.length > 0) {
+        await runProcessing({ dryRun: false, autoTrigger: true });
+      } else {
+        return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(generatedCsv);
+      const originalHTML = btnQuickCopy.innerHTML;
+      btnQuickCopy.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px; color:var(--ok);">check</span> Copied!';
+      setTimeout(() => { btnQuickCopy.innerHTML = originalHTML; }, 2000);
+    } catch (err) {
+      rawTextarea.select();
+      document.execCommand("copy");
+      alert("Copied CSV to clipboard!");
+    }
+  }
+
+  async function runProcessing({ dryRun, autoTrigger = false }) {
     if (isConverting || parsedRecords.length === 0) return;
     isConverting = true;
     btnConvert.disabled = true;
@@ -1072,22 +1308,23 @@
     const colSet = new Set();
     const allFlattenedRows = [];
 
-    // Process records in chunks
     const chunkSize = 250;
     for (let i = 0; i < parsedRecords.length; i += chunkSize) {
       const slice = parsedRecords.slice(i, i + chunkSize);
       for (const rec of slice) {
         const rows = flattenRecord(rec);
         for (const row of rows) {
-          for (const key of Object.keys(row)) colSet.add(key);
+          for (const key of Object.keys(row)) colSet.add(key || "value");
           if (!dryRun) allFlattenedRows.push(row);
         }
       }
-      const elapsedSec = ((performance.now() - started) / 1000).toFixed(1);
+      const elapsedSec = ((performance.now() - started) / 1000).toFixed(2);
       elapsedNode.textContent = `${elapsedSec}s`;
       meterRecordsBar.style.width = `${Math.min(100, Math.round(((i + slice.length) / parsedRecords.length) * 100))}%`;
-      meterSpeedVal.textContent = `${Math.round((i + slice.length) / Math.max(0.1, (performance.now() - started) / 1000))} rows/s`;
-      await new Promise(r => setTimeout(r, 0));
+      meterSpeedVal.textContent = `${Math.round((i + slice.length) / Math.max(0.05, (performance.now() - started) / 1000))} rows/s`;
+      if (parsedRecords.length > 500) {
+        await new Promise(r => setTimeout(r, 0));
+      }
     }
 
     discoveredColumns = Array.from(colSet).sort();
@@ -1105,7 +1342,7 @@
     });
 
     if (dryRun) {
-      alert(`Dry run complete: discovered ${discoveredColumns.length} columns across ${parsedRecords.length} records in ${((performance.now() - started) / 1000).toFixed(2)}s.`);
+      document.querySelector('[data-tab="columns"]').click();
     } else {
       // Build CSV
       const quoteAll = quoteAllNode.checked;
@@ -1118,13 +1355,15 @@
       }
 
       generatedCsv = csvLines.join("\r\n");
-      rawTextarea.value = csvLines.slice(0, 50).join("\r\n") + (csvLines.length > 50 ? `\n... [${csvLines.length - 50} more rows]` : "");
+      const previewLines = csvLines.slice(0, 25).map(l => l.length > 800 ? l.slice(0, 797) + "…" : l);
+      rawTextarea.value = previewLines.join("\r\n") + (csvLines.length > 25 ? `\n\n... [${csvLines.length - 25} more rows — click "Download Full CSV" or "Copy CSV" for complete dataset]` : "");
 
       // Render Table Preview
       renderTablePreview(allFlattenedRows.slice(0, 50), discoveredColumns);
 
-      // Trigger instant download
-      triggerDownload();
+      if (!autoTrigger) {
+        triggerDownload();
+      }
     }
 
     const totalSec = ((performance.now() - started) / 1000).toFixed(2);
@@ -1132,6 +1371,8 @@
     isConverting = false;
     btnConvert.disabled = false;
     btnDryRun.disabled = false;
+    btnQuickCopy.disabled = false;
+    btnQuickDownload.disabled = false;
   }
 
   function escapeCsvCell(val, quoteAll) {
@@ -1159,7 +1400,9 @@
       const tr = document.createElement("tr");
       cols.forEach(c => {
         const td = document.createElement("td");
-        td.textContent = r[c] ?? "";
+        const cellText = String(r[c] ?? "");
+        td.textContent = cellText.length > 220 ? cellText.slice(0, 217) + "…" : cellText;
+        if (cellText.length > 220) td.title = cellText.slice(0, 400);
         tr.appendChild(td);
       });
       tableBody.appendChild(tr);
@@ -1167,6 +1410,12 @@
   }
 
   function triggerDownload() {
+    if (!generatedCsv) {
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false });
+      }
+      return;
+    }
     const addBom = excelBomNode.checked;
     const blobParts = addBom ? ["\uFEFF", generatedCsv] : [generatedCsv];
     const blob = new Blob(blobParts, { type: "text/csv;charset=utf-8;" });
@@ -1239,13 +1488,12 @@
   };
 
   document.getElementById("btn-load-demo").addEventListener("click", () => {
+    userExplicitPath = false;
     currentFile = { name: "sample_cloudtemplates_demo.json", size: JSON.stringify(DEMO_DATA).length };
     rawText = JSON.stringify(DEMO_DATA, null, 2);
     dropzoneText.textContent = "sample_cloudtemplates_demo.json";
     meterFileVal.textContent = "sample_cloudtemplates_demo.json (Demo)";
     meterFileBar.style.width = "100%";
-    btnConvert.disabled = false;
-    btnDryRun.disabled = false;
     parseInputData();
   });
 
