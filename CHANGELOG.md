@@ -1,24 +1,30 @@
 # Changelog
 
-## Unreleased
+## [1.0.0] - 2026-11-13 (Production Architecture Release)
+
+### Added
+- **Interactive Tooltip System:** Added responsive, accessible tooltips across all controls, flattening depth options, array strategies, action buttons, table columns, and meters with keyboard focus and hover support.
+- **Architectural Guidance Footer:** Integrated a luxury forest guidance and reference documentation section beneath the workspace explaining:
+  - What JSON flattening achieves when transforming hierarchical tree structures into 2D rectangular tables.
+  - Flattening depth decisions and trade-offs (`none`, `depth:1`, `depth:2`, `full`).
+  - Comparative analysis of array handling strategies (`compact`, `columns`, `join`, `explode`) and cartesian multiplication safeguards.
+  - Air-gapped privacy guarantees and CLI parity.
+- **Dynamic Feedback & Error Cards:** Added loading spinner and real-time status reporting during file ingestion, along with graceful in-place error diagnostics replacing native browser alerts.
+- **Global Drag & Drop:** Added window-level drag-and-drop listener allowing users to drop JSON/NDJSON files anywhere on the application viewport.
+- **CLI `-v` / `--version` Flag:** Added standard version inspection reporting `flatJSON2csv 1.0.0`.
 
 ### Fixed
-- Fixed CLI failure on standard environments lacking `ijson` by adding an automatic fallback to Python's built-in `json` module, allowing local conversion with zero third-party dependencies.
-- Fixed sticky stale `input-path` state in the Web GUI that silently broke conversion of subsequent files after loading an enveloped dataset or demo sample.
-- Fixed conversion of primitive arrays (e.g. `[1, 2, 3]` or `["a", "b"]`) in both CLI and Web GUI by assigning them to a clean `value` column instead of throwing errors or empty headers.
-- Fixed CLI `--dry-run` and single file conversion requiring `-o` (now defaults to `<input>.csv` for single files and skips `-o` requirement for dry runs).
+- **File Upload & Preview Ingestion:** Fixed issue where uploaded JSON files failed to render in the preview table by:
+  - Moving the hidden `<input type="file">` outside the clickable dropzone to prevent duplicate event bubbling.
+  - Clearing `fileInput.value` immediately after file selection to allow selecting the same file repeatedly.
+  - Automatically activating the "Table Preview" tab upon file or paste load so converted records are immediately visible.
+  - Wrapping asynchronous conversion loops in robust `try ... catch ... finally` blocks guaranteeing that conversion lock states (`isConverting`) and button disabled states are always released.
+- **Smart Envelope Array Detection:** Upgraded candidate array discovery to prioritize the largest record array count over shallow auxiliary arrays (e.g. `data.content` with 1,114 items taking precedence over shallow `warnings` or `sort` singletons).
+- **Service Worker Cache:** Bumped PWA service worker cache identifier to `flatJSON2csv-v4` for immediate client cache invalidation.
 
-### Improved
-- Added direct "Paste JSON" textarea tab in the Web GUI to allow pasting raw JSON/NDJSON directly from clipboard, matching konklone.io and convertcsv.com workflows.
-- Added global `Cmd+V` / `Ctrl+V` paste shortcut to load JSON from clipboard anywhere on the Web GUI.
-- Added instant live preview (table view and raw CSV) upon file drop or text paste without requiring an immediate download click.
-- Added one-click "Copy CSV" and "Download CSV" actions in the results toolbar.
-- Added "Reset" button to cleanly clear all inputs, meters, and tables.
-- Replace embedded line breaks in CSV cell values with spaces in both CLI and browser exports, keeping each record on one physical line for line-oriented readers.
-- Delay revoking browser download URLs so generated CSV files have time to download reliably.
-- Refresh the service worker cache version so clients load the updated converter.
-
-### Planned
-- Cleaner titles after conversion by removing the metadata structure.
-- A more guided interface that explains what each option does.
-- A more stable user experience.
+### Previous Fixes & Improvements
+- Added Python built-in `json` module fallback for zero-dependency execution when `ijson` is not installed.
+- Fixed primitive array handling (e.g. `[1, 2, 3]`) by mapping them into a clean `value` column.
+- Fixed multiline YAML templates breaking CSV records by replacing embedded newlines with spaces.
+- Increased CSV field size limits to support cells larger than 128 KB.
+- Added direct paste tab, global `Cmd+V` / `Ctrl+V` shortcut, toolbar copy/download actions, and reset state.

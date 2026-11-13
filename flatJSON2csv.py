@@ -21,6 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="flatJSON2csv — ted thought this was functional & fancy\nLocal, streaming JSON and NDJSON to CSV converter for sensitive datasets.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument("-v", "--version", action="version", version="flatJSON2csv 1.0.0")
     parser.add_argument("input", nargs="?", help="JSON/NDJSON file, glob, or directory (optional with --web)")
     parser.add_argument("-o", "--output", help="CSV file or output directory (required unless using --web)")
     parser.add_argument(
