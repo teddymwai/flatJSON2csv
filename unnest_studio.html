@@ -3839,10 +3839,22 @@
     parseInputData();
   });
 
-  // Register Service Worker for offline PWA caching
+  // Register Service Worker for offline PWA caching with auto-update
   if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(err => console.debug('SW reg skipped:', err));
+      navigator.serviceWorker.register('./sw.js').then(reg => {
+        reg.update();
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            });
+          }
+        });
+      }).catch(err => console.debug('SW reg skipped:', err));
     });
   }
 })();
