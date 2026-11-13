@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unnest Studio · The local, privacy-first JSON to tabular studio</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+<style>
+  /* ── Reset & Luxury Forest Base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --brand-base:    rgba(14, 63, 42, 1.00); /* #0e3f2a Luxury Forest Deep Green */
+    --brand-moss:    #33533C;                /* Lush moss/pine intermediate green */
+    --amber-jungle:  #735817;                /* Warm antique bronze / amber jungle */
+    --gold-rich:     #FBAB04;                /* Rich gold / amber highlight */
+    --champagne:     #C7B9A1;                /* Luxury sand / champagne neutral */
+
+    --bg:            #080f0b;                /* Obsidian canvas with subtle forest undertone */
+    --surface:       #0e1813;                /* Quiet elevated container surface */
+    --surface2:      #14231b;                /* Secondary container surface */
+    --surface-card:  #111e17;                /* Elevated card background */
+    --border:        rgba(14, 63, 42, 0.45); /* Brand forest hairline */
+    --border-subtle: rgba(199, 185, 161, 0.12); /* Champagne hairline */
+    --border-gold:   rgba(251, 171, 4, 0.35);  /* Subtle gold accent border */
+
+    --text:          #f0f6f2;                /* Crisp off-white primary */
+    --text-sand:     #e8e4dc;                /* Soft sand copy */
+    --muted:         #9bb1a4;                /* Tinted cool sage */
+    --muted-sand:    #C7B9A1;                /* Champagne secondary text */
+
+    --accent:        #1e6b49;                /* Interactive emerald */
+    --accent-light:  #2e9165;
+    --accent-glow:   rgba(46, 145, 101, 0.25);
+
+    --ok:            #2ea043;
+    --ok-dim:        rgba(46, 160, 67, 0.14);
+    --fail:          #f85149;
+    --fail-dim:      rgba(248, 81, 73, 0.14);
+    --warn:          #FBAB04;
+    --warn-dim:      rgba(251, 171, 4, 0.14);
+
+    --font-mono:     "JetBrains Mono", "Fira Code", monospace;
+    --font-ui:       -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --radius-sm:     8px;
+    --radius-md:     14px;
+    --radius-lg:     18px;
+    --radius-pill:   9999px;
+  }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  /* ── Master App Layout ─────────────────────────────────────────────────── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    height: auto;
+    overflow-x: hidden;
+  }
+
+  /* ── Header (Slim Two-Sided Quiet Chrome) ──────────────────────────────── */
+  #header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    height: 48px;
+    min-height: 48px;
+  }
+
+  #header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+  }
+
+  #brand-cluster {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  #title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  #title {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  #title span { color: var(--accent-light); }
+
+  #tagline {
+    font-size: 11px;
+    color: var(--champagne);
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+  }
+
+  #action-cluster {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .pill-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-pill);
+    color: var(--muted-sand);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .pill-badge.privacy {
+    border-color: rgba(46, 160, 67, 0.4);
+    background: rgba(14, 63, 42, 0.25);
+    color: #4ade80;
+  }
+
+  .pill-badge.version-pill {
+    background: rgba(30, 107, 73, 0.22);
+    border-color: rgba(46, 145, 101, 0.45);
+    color: var(--text);
+    font-weight: 600;
+    gap: 6px;
+  }
+
+  .pill-badge.guide-jump-btn {
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+
+  .pill-badge.guide-jump-btn:hover {
+    background: rgba(30, 107, 73, 0.25);
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  .pill-badge.airgap-btn {
+    cursor: pointer;
+    background: rgba(251, 171, 4, 0.12);
+    border-color: var(--border-gold);
+    color: var(--gold-rich);
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .pill-badge.airgap-btn:hover {
+    background: rgba(251, 171, 4, 0.2);
+    border-color: var(--gold-rich);
+  }
+
+  /* Status Pulsing Dot */
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 6px rgba(74, 222, 128, 0.8);
+    display: inline-block;
+    animation: status-pulse 2.2s infinite ease-in-out;
+  }
+
+  @keyframes status-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.8); }
+  }
+
+  #elapsed {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--champagne);
+    background: rgba(14, 63, 42, 0.25);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  /* ── Main Workspace Split Layout ───────────────────────────────────────── */
+  #workspace {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    height: calc(100vh - 48px - 28px);
+    min-height: 520px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  @media (max-width: 900px) {
+    #workspace {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+  }
+
+  /* ── Configuration Sidebar ────────────────────────────────────────────── */
+  #config-panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+  }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--champagne);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip-btn {
+    padding: 5px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    color: var(--muted-sand);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .chip-btn:hover {
+    background: rgba(30, 107, 73, 0.2);
+    border-color: var(--accent-light);
+    color: var(--text);
+  }
+
+  .chip-btn.active {
+    background: var(--brand-base);
+    color: var(--text);
+    border-color: var(--accent-light);
+    font-weight: 600;
+    box-shadow: 0 0 10px var(--accent-glow);
+  }
+
+  #dropzone {
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    background: rgba(8, 15, 11, 0.4);
+    padding: 18px 14px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  #dropzone:hover, #dropzone.drag-over {
+    border-color: var(--accent-light);
+    background: rgba(30, 107, 73, 0.1);
+  }
+
+  #dropzone .icon {
+    font-size: 28px;
+    color: var(--accent-light);
+  }
+
+  #dropzone-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-sand);
+  }
+
+  #dropzone-sub {
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+
+  #file-input { display: none; }
+
+  .input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .input-row label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--muted-sand);
+  }
+
+  .text-input {
+    background: #090e0b;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .text-input:focus {
+    border-color: var(--accent-light);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--text-sand);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkbox-label input {
+    accent-color: var(--brand-base);
+    cursor: pointer;
+  }
+
+  .action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, border-color 0.15s;
+    user-select: none;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    background: var(--brand-base);
+    border-color: var(--accent-light);
+    color: var(--text);
+    box-shadow: 0 2px 10px var(--accent-glow);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent);
+    border-color: #3bb27d;
+  }
+
+  .btn-secondary {
+    background: var(--surface2);
+    border-color: var(--border);
+    color: var(--text-sand);
+  }
+
+  .btn-secondary:hover {
+    background: rgba(30, 107, 73, 0.2);
+    border-color: var(--accent);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ── Results Stage (Tabs & Preview Table) ──────────────────────────────── */
+  #results-stage {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  #results-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .tab-btn {
+    padding: 5px 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .tab-btn:hover {
+    color: var(--text);
+  }
+
+  .tab-btn.active {
+    background: var(--surface2);
+    color: var(--text);
+    font-weight: 600;
+    border: 1px solid var(--border-subtle);
+  }
+
+  #table-container {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    padding: 14px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: left;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #0e1813;
+    color: var(--champagne);
+    padding: 8px 12px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid rgba(255, 255, 255, 0.04);
+    white-space: nowrap;
+    z-index: 2;
+  }
+
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-right: 1px solid rgba(255, 255, 255, 0.02);
+    color: var(--text-sand);
+    white-space: nowrap;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  tr:hover td {
+    background: rgba(30, 107, 73, 0.1);
+  }
+
+  /* ── Column Chips Display ─────────────────────────────────────────────── */
+  #columns-view {
+    padding: 16px;
+    overflow-y: auto;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .col-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .col-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* ── Raw Output View ──────────────────────────────────────────────────── */
+  #raw-view {
+    padding: 16px;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  #raw-textarea {
+    flex: 1;
+    background: #090e0b;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-sand);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 12px;
+    resize: none;
+    outline: none;
+    white-space: pre;
+    overflow: auto;
+  }
+
+  /* ── Empty State ──────────────────────────────────────────────────────── */
+  #empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 12px;
+    color: var(--muted);
+    text-align: center;
+    padding: 40px;
+  }
+
+  #empty-state .icon {
+    font-size: 44px;
+    color: var(--border);
+  }
+
+  /* ── Loading & Processing State ────────────────────────────────────────── */
+  #loading-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 14px;
+    color: var(--champagne);
+    text-align: center;
+    padding: 40px;
+  }
+
+  .spinner-icon {
+    font-size: 36px;
+    color: var(--accent-light);
+    animation: spin 1.1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* ── Error State ──────────────────────────────────────────────────────── */
+  #error-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 14px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .error-card {
+    background: rgba(248, 81, 73, 0.08);
+    border: 1px solid rgba(248, 81, 73, 0.35);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .error-card .icon {
+    font-size: 32px;
+    color: var(--fail);
+  }
+
+  .error-card h4 {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .error-card p {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  /* ── Integrated IDE Telemetry Status Bar ──────────────────────────────── */
+  #status-bar {
+    background: #060b08;
+    border-top: 1px solid var(--border);
+    padding: 0 16px;
+    height: 28px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted-sand);
+    user-select: none;
+    z-index: 50;
+    position: relative;
+  }
+
+  #status-progress-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: transparent;
+    overflow: hidden;
+  }
+
+  #status-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: var(--accent-light);
+    box-shadow: 0 0 6px rgba(46, 145, 101, 0.8);
+    transition: width 0.25s ease;
+  }
+
+  .status-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: default;
+  }
+
+  .status-sep {
+    color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* ── Tooltip Component ─────────────────────────────────────────────────── */
+  #app-tooltip {
+    position: fixed;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(4px);
+    transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    background: #09130d;
+    border: 1px solid var(--border-gold);
+    color: var(--text-sand);
+    font-family: var(--font-ui);
+    font-size: 11.5px;
+    line-height: 1.45;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 0 10px rgba(251, 171, 4, 0.15);
+    max-width: 290px;
+    word-wrap: break-word;
+  }
+
+  #app-tooltip.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  #app-tooltip .tip-title {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--champagne);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  #app-tooltip .tip-body {
+    color: #e2ddd5;
+  }
+
+  /* ── Architectural Guidance Footer ─────────────────────────────────────── */
+  #guidance-footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 40px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .guidance-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 840px;
+  }
+
+  .guidance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--champagne);
+    background: rgba(14, 63, 42, 0.35);
+    border: 1px solid var(--border-gold);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .guidance-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .guidance-header p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .guidance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .guidance-card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .guidance-card:hover {
+    border-color: rgba(46, 145, 101, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .card-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: rgba(30, 107, 73, 0.2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--champagne);
+  }
+
+  .guidance-card h3 {
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .guidance-card .card-desc {
+    font-size: 12px;
+    color: var(--muted-sand);
+    line-height: 1.5;
+  }
+
+  .guidance-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--text-sand);
+    margin-top: 2px;
+  }
+
+  .guidance-list li {
+    position: relative;
+    padding-left: 16px;
+    line-height: 1.5;
+  }
+
+  .guidance-list li::before {
+    content: "·";
+    position: absolute;
+    left: 4px;
+    top: -1px;
+    font-size: 16px;
+    color: var(--champagne);
+  }
+
+  .guidance-list code, .spec-matrix code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    background: rgba(8, 15, 11, 0.6);
+    border: 1px solid var(--border);
+    padding: 1px 4px;
+    border-radius: 4px;
+    color: var(--champagne);
+  }
+
+  .spec-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .spec-row {
+    display: grid;
+    grid-template-columns: 82px 1fr;
+    gap: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    background: rgba(8, 15, 11, 0.45);
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .spec-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--champagne);
+    font-weight: 600;
+  }
+
+  .spec-body {
+    color: var(--text-sand);
+  }
+
+  /* ── Guidance Bottom & Social Links ────────────────────────────────────── */
+  .guidance-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .guidance-brand-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .guidance-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .guidance-tagline {
+    font-size: 11.5px;
+    font-style: italic;
+    color: var(--champagne);
+  }
+
+  .guidance-social-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--champagne);
+    text-decoration: none;
+    background: rgba(14, 63, 42, 0.25);
+    border: 1px solid var(--border-subtle);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    user-select: none;
+  }
+
+  .social-link:hover {
+    background: rgba(30, 107, 73, 0.35);
+    border-color: var(--accent);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header (Slim Two-Sided Quiet Chrome) ──────────────────────────────── -->
+  <header id="header">
+    <div id="header-top">
+      <div id="brand-cluster">
+        <div id="title-wrap">
+          <div id="title">
+            <span class="material-symbols-outlined" style="font-size:18px; color:var(--accent-light);">dataset</span>
+            Unnest <span>Studio</span>
+          </div>
+          <div id="tagline">The local, privacy-first JSON to tabular studio.</div>
+        </div>
+        <div class="pill-badge version-pill" data-tooltip="Production v1.0.0 release · Dual CLI and Web engine" data-tooltip-title="Release Status">
+          <span class="status-dot"></span>
+          v1.0.0
+        </div>
+      </div>
+
+      <div id="action-cluster">
+        <div class="pill-badge privacy" data-tooltip="All parsing and conversion runs strictly in your local browser sandbox. Zero data is exfiltrated." data-tooltip-title="Privacy Guarantee">
+          <span class="material-symbols-outlined" style="font-size:14px;">shield</span>
+          In-Browser · 0KB Sent
+        </div>
+        <a href="#guidance-footer" class="pill-badge guide-jump-btn" data-tooltip="Jump to architectural guidance and reference documentation on flattening and array strategies." data-tooltip-title="Documentation">
+          <span class="material-symbols-outlined" style="font-size:14px; color:var(--accent-light);">menu_book</span>
+          Guide
+        </a>
+        <button type="button" id="btn-airgap-dl" class="pill-badge airgap-btn" data-tooltip="Downloads a self-contained offline HTML file. Opens in any browser without internet access or web servers." data-tooltip-title="Air-Gapped Standalone">
+          <span class="material-symbols-outlined" style="font-size:14px;">download_for_offline</span>
+          Air-Gap HTML
+        </button>
+        <div id="elapsed" data-tooltip="Total execution time for reading, parsing, and converting the active dataset." data-tooltip-title="Execution Clock">0.0s</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main Workspace ──────────────────────────────────────────────────── -->
+  <main id="workspace">
+
+    <!-- ── Left Configuration Panel ──────────────────────────────────────── -->
+    <aside id="config-panel">
+      <!-- File Selector & Raw Paste Zone -->
+      <div>
+        <div class="section-label">
+          <span class="material-symbols-outlined" style="font-size:14px;">input</span>
+          Input Dataset
+        </div>
+
+        <div class="chip-group" id="input-mode-chips" style="margin-bottom:8px;">
+          <button type="button" class="chip-btn active" id="chip-mode-file" data-mode="file" data-tooltip="Browse or drop .json, .ndjson, or .jsonl files from your computer." data-tooltip-title="Input Mode">Upload File</button>
+          <button type="button" class="chip-btn" id="chip-mode-paste" data-mode="paste" data-tooltip="Paste raw JSON or NDJSON text directly, or press Cmd+V / Ctrl+V anywhere." data-tooltip-title="Input Mode">Paste JSON</button>
+        </div>
+
+        <div id="file-input-wrapper">
+          <div id="dropzone" role="button" tabindex="0" data-tooltip="Click to choose a file or drag and drop any JSON/NDJSON file here from your computer." data-tooltip-title="Local File Picker">
+            <span class="material-symbols-outlined icon">cloud_upload</span>
+            <span id="dropzone-text">Drop JSON or NDJSON here</span>
+            <span id="dropzone-sub">or click to browse (.json, .ndjson, .jsonl)</span>
+          </div>
+          <input type="file" id="file-input" accept=".json,.ndjson,.jsonl,.txt,application/json,text/plain,*/*">
+        </div>
+
+        <div id="paste-input-wrapper" style="display:none; flex-direction:column; gap:8px;">
+          <textarea id="paste-textarea" class="text-input" placeholder="Paste JSON array, object, or NDJSON lines here (or Cmd+V anywhere)..." style="width:100%; height:110px; font-family:var(--font-mono); font-size:11.5px; resize:vertical; padding:10px; line-height:1.4;" data-tooltip="Paste raw JSON text or NDJSON stream lines here." data-tooltip-title="Direct Paste Input"></textarea>
+          <button type="button" id="btn-parse-paste" class="btn btn-primary" style="min-height:30px; font-size:11px; width:100%;" data-tooltip="Parse and preview the pasted JSON data." data-tooltip-title="Load Action">
+            <span class="material-symbols-outlined" style="font-size:14px;">play_arrow</span>
+            Load Pasted JSON
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-top:8px;">
+          <button type="button" id="btn-load-demo" class="btn btn-secondary" style="min-height:30px; padding:0 8px; font-size:11px;" data-tooltip="Loads an authentic cloud infrastructure dataset with nested sizing specs, tags, and version metadata." data-tooltip-title="Demo Dataset">
+            <span class="material-symbols-outlined" style="font-size:14px;">science</span>
+            Sample Data
+          </button>
+          <button type="button" id="btn-clear-all" class="btn btn-secondary" style="min-height:30px; padding:0 8px; font-size:11px;" data-tooltip="Clears all inputs, meters, preview tables, and resets configuration to default state." data-tooltip-title="Reset Everything">
+            <span class="material-symbols-outlined" style="font-size:14px;">refresh</span>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Flattening Strategy -->
+      <div>
+        <div class="section-label">
+          <span class="material-symbols-outlined" style="font-size:14px;">account_tree</span>
+          Flattening Strategy
+        </div>
+        <div class="chip-group" id="flatten-chips">
+          <button type="button" class="chip-btn active" data-val="depth:2" data-tooltip="Standard 2-level unnesting. Recommended balance between expanding metadata and preserving deep structures." data-tooltip-title="Depth: 2 (Default)">depth:2 (default)</button>
+          <button type="button" class="chip-btn" data-val="depth:1" data-tooltip="Shallow unnesting of top-level properties only. Deeper nested objects remain intact as JSON strings." data-tooltip-title="Depth: 1">depth:1</button>
+          <button type="button" class="chip-btn" data-val="depth:3" data-tooltip="Deep unnesting up to 3 levels of nested object hierarchies into dot-notation columns." data-tooltip-title="Depth: 3">depth:3</button>
+          <button type="button" class="chip-btn" data-val="full" data-tooltip="Recursively flattens all nested objects down to scalar leaf primitives." data-tooltip-title="Full Flatten">full</button>
+          <button type="button" class="chip-btn" data-val="none" data-tooltip="Preserves all nested objects as raw serialized JSON strings without expanding dot-notation keys." data-tooltip-title="No Flattening">none</button>
+        </div>
+      </div>
+
+      <!-- Array Handling -->
+      <div>
+        <div class="section-label">
+          <span class="material-symbols-outlined" style="font-size:14px;">data_array</span>
+          Array Handling
+        </div>
+        <div class="chip-group" id="array-chips">
+          <button type="button" class="chip-btn active" data-val="json" data-tooltip="Preserves arrays as deterministic JSON strings (e.g. ['red','blue']). Prevents row multiplication. Safest choice." data-tooltip-title="JSON String (Compact)">json string</button>
+          <button type="button" class="chip-btn" data-val="columns" data-tooltip="Expands array elements into separate numbered columns (tags_0, tags_1) up to the configured Array Cap." data-tooltip-title="Separate Columns">columns</button>
+          <button type="button" class="chip-btn" data-val="join" data-tooltip="Merges primitive array elements into a single human-readable text cell separated by the join delimiter." data-tooltip-title="Delimiter Join">join</button>
+          <button type="button" class="chip-btn" data-val="explode" data-tooltip="Normalizes 1:N relations by producing a separate CSV row for every array item, duplicating parent fields." data-tooltip-title="Explode / Unnest Rows">explode</button>
+        </div>
+      </div>
+
+      <!-- Enveloped Path -->
+      <div class="input-row">
+        <label for="input-path">Array Path in Object (auto-detected if blank):</label>
+        <input type="text" id="input-path" class="text-input" placeholder="e.g. data.content" data-tooltip="Dot-notation path to the array of records inside an enveloped object (e.g. 'data.content' or 'hits.hits'). Automatically discovered if left empty." data-tooltip-title="Record Array Path">
+      </div>
+
+      <!-- Array Join/Cap Options -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div class="input-row">
+          <label for="array-cap">Array Cap (columns):</label>
+          <input type="number" id="array-cap" class="text-input" value="10" min="1" data-tooltip="Maximum number of columns to generate when using the 'Separate Columns' array strategy (default: 10)." data-tooltip-title="Array Column Cap">
+        </div>
+        <div class="input-row">
+          <label for="array-delim">Join Delimiter:</label>
+          <input type="text" id="array-delim" class="text-input" value="; " data-tooltip="Character string inserted between array elements when using the 'Delimiter Join' strategy (default: '; ')." data-tooltip-title="Join Delimiter">
+        </div>
+      </div>
+
+      <!-- Advanced Checkboxes -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <label class="checkbox-label" data-tooltip="Allows row explosion when multiple arrays exist on one record. Disabled by default to protect browser memory from runaway cartesian products." data-tooltip-title="Cartesian Safeguard">
+          <input type="checkbox" id="allow-cartesian">
+          Allow Cartesian expansion
+        </label>
+        <label class="checkbox-label" data-tooltip="Forces enclosing every CSV cell in double quotes, even cells without commas or special characters." data-tooltip-title="Quote All Cells">
+          <input type="checkbox" id="quote-all">
+          Quote all CSV cells
+        </label>
+        <label class="checkbox-label" data-tooltip="Prepends UTF-8 Byte Order Mark (\\uFEFF) so Microsoft Excel opens accented and international Unicode characters cleanly." data-tooltip-title="Excel Compatibility">
+          <input type="checkbox" id="excel-bom" checked>
+          Add UTF-8 BOM (Excel compatibility)
+        </label>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-stack">
+        <button type="button" id="btn-convert" class="btn btn-primary" disabled data-tooltip="Flattens all records, generates the full CSV dataset, updates preview, and triggers file download." data-tooltip-title="Convert & Export">
+          <span class="material-symbols-outlined">download</span>
+          Convert & Download CSV
+        </button>
+        <button type="button" id="btn-dryrun" class="btn btn-secondary" disabled data-tooltip="Quickly scans and reports all discovered column headers and count without generating rows or downloading." data-tooltip-title="Schema Dry Run">
+          <span class="material-symbols-outlined">visibility</span>
+          Inspect Columns (Dry Run)
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Right Results & Preview Stage ─────────────────────────────────── -->
+    <section id="results-stage">
+      <nav id="results-tabs">
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="tab-btn active" data-tab="table" data-tooltip="Inspect formatted rectangular tabular preview of your flattened dataset (up to 50 rows)." data-tooltip-title="Table View">
+            <span class="material-symbols-outlined" style="font-size:15px;">table_chart</span>
+            Table Preview
+          </button>
+          <button type="button" class="tab-btn" data-tab="columns" data-tooltip="View complete list of all unique discovered column headers across the dataset." data-tooltip-title="Columns View">
+            <span class="material-symbols-outlined" style="font-size:15px;">schema</span>
+            Columns (<span id="tab-col-count">0</span>)
+          </button>
+          <button type="button" class="tab-btn" data-tab="raw" data-tooltip="Inspect raw CSV formatted text lines and escaping." data-tooltip-title="Raw CSV View">
+            <span class="material-symbols-outlined" style="font-size:15px;">code</span>
+            Raw CSV
+          </button>
+        </div>
+
+        <!-- In-Table Column Filter -->
+        <div style="display:flex; align-items:center; gap:6px; margin-left:auto; margin-right:8px;">
+          <span class="material-symbols-outlined" style="font-size:14px; color:var(--muted);">filter_alt</span>
+          <input type="text" id="col-filter-input" placeholder="Filter columns..." class="text-input" style="height:26px; font-size:11px; padding:2px 8px; width:130px; border-radius:var(--radius-sm);" data-tooltip="Type to filter visible table columns in real time." data-tooltip-title="Column Filter">
+        </div>
+
+        <div style="display:flex; gap:6px;">
+          <button type="button" id="btn-quick-copy" class="btn btn-secondary" style="min-height:28px; padding:0 10px; font-size:11px;" disabled data-tooltip="Copies the full generated CSV content directly to your clipboard." data-tooltip-title="Copy Clipboard">
+            <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+            Copy CSV
+          </button>
+          <button type="button" id="btn-quick-download" class="btn btn-primary" style="min-height:28px; padding:0 10px; font-size:11px;" disabled data-tooltip="Saves the complete generated CSV file to your local computer." data-tooltip-title="Download File">
+            <span class="material-symbols-outlined" style="font-size:14px;">download</span>
+            Download CSV
+          </button>
+        </div>
+      </nav>
+
+      <!-- Tab 1: Table Preview Container -->
+      <div id="table-container">
+        <!-- Initial Empty State -->
+        <div id="empty-state">
+          <span class="material-symbols-outlined icon">folder_open</span>
+          <p>Drop a JSON or NDJSON file to inspect and convert locally.</p>
+          <span style="font-size:11.5px; color:var(--muted-sand);">Everything executes client-side inside your browser. No data leaves your computer.</span>
+        </div>
+
+        <!-- Dynamic Loading State -->
+        <div id="loading-state">
+          <span class="material-symbols-outlined spinner-icon">progress_activity</span>
+          <div style="font-family:var(--font-mono); font-size:13px; color:var(--champagne);" id="loading-msg">Analyzing and flattening dataset...</div>
+        </div>
+
+        <!-- Dynamic Error State -->
+        <div id="error-state">
+          <div class="error-card">
+            <span class="material-symbols-outlined icon">error_outline</span>
+            <h4>Unable to Process Input</h4>
+            <p id="error-msg">An error occurred while parsing the JSON payload.</p>
+            <button type="button" class="btn btn-secondary" id="btn-error-reset" style="min-height:28px; padding:0 12px; font-size:11px; margin-top:6px;">
+              <span class="material-symbols-outlined" style="font-size:14px;">refresh</span>
+              Try Another File
+            </button>
+          </div>
+        </div>
+
+        <!-- Rendered Table -->
+        <table id="preview-table" style="display:none;">
+          <thead id="table-head"></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Discovered Columns -->
+      <div id="columns-view">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label">Discovered Column Schema</span>
+          <button type="button" id="btn-copy-cols" class="btn btn-secondary" style="min-height:30px; padding:0 12px; font-size:11px;" data-tooltip="Copies comma-separated list of all discovered column names to clipboard." data-tooltip-title="Copy Schema">
+            <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
+            Copy Column List
+          </button>
+        </div>
+        <div class="col-chip-list" id="col-chip-list"></div>
+      </div>
+
+      <!-- Tab 3: Raw CSV Preview -->
+      <div id="raw-view">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="section-label">Raw CSV Output (Preview)</span>
+          <button type="button" id="btn-download-raw" class="btn btn-primary" style="min-height:30px; padding:0 14px; font-size:11px;" data-tooltip="Downloads the full generated CSV file to your local computer." data-tooltip-title="Download File">
+            <span class="material-symbols-outlined" style="font-size:15px;">file_download</span>
+            Download Full CSV
+          </button>
+        </div>
+        <textarea id="raw-textarea" readonly></textarea>
+      </div>
+    </section>
+  </main>
+
+  <!-- ── Integrated IDE Telemetry Status Bar ──────────────────────────────── -->
+  <footer id="status-bar">
+    <div id="status-progress-track">
+      <div id="status-progress-bar"></div>
+    </div>
+    <div class="status-group">
+      <div class="status-item" id="status-file-item" data-tooltip="Active dataset filename and byte size." data-tooltip-title="Active Dataset">
+        <span class="material-symbols-outlined" style="font-size:13px; color:var(--champagne);">description</span>
+        <span id="meter-file-val">No file loaded</span>
+      </div>
+      <div class="status-sep">|</div>
+      <div class="status-item" id="status-records-item" data-tooltip="Total number of discrete record objects detected and parsed." data-tooltip-title="Records Processed">
+        <span class="material-symbols-outlined" style="font-size:13px; color:var(--accent-light);">view_list</span>
+        <span id="meter-records-val">0 records</span>
+      </div>
+      <div class="status-sep">|</div>
+      <div class="status-item" id="status-cols-item" data-tooltip="Total unique flattened CSV column headers discovered across all records." data-tooltip-title="Discovered Columns">
+        <span class="material-symbols-outlined" style="font-size:13px; color:var(--champagne);">table_chart</span>
+        <span id="meter-cols-val">0 cols</span>
+      </div>
+    </div>
+    <div class="status-group">
+      <div class="status-item" id="status-speed-item" data-tooltip="Throughput speed in records converted per second." data-tooltip-title="Conversion Speed">
+        <span class="material-symbols-outlined" style="font-size:13px; color:#4ade80;">speed</span>
+        <span id="meter-speed-val">0 rows/s</span>
+      </div>
+      <div class="status-sep">|</div>
+      <div class="status-item" data-tooltip="100% in-browser client execution. 0 bytes transferred over the network." data-tooltip-title="Security Guarantee">
+        <span class="material-symbols-outlined" style="font-size:13px; color:#4ade80;">lock</span>
+        <span>Client-Side Local</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Architectural Guidance & Documentation Footer ──────────────────── -->
+  <footer id="guidance-footer">
+    <div class="guidance-header">
+      <div class="guidance-badge">
+        <span class="material-symbols-outlined" style="font-size:14px;">menu_book</span>
+        Architectural Guidance & Reference
+      </div>
+      <h2>Demystifying JSON Flattening & Array Strategies</h2>
+      <p>How Unnest Studio transforms hierarchical trees into relational rectangles for SQL, BI, and ML pipelines — without compromising data integrity, schema consistency, or privacy.</p>
+    </div>
+
+    <div class="guidance-grid">
+      <!-- Card 1: What Flattening Achieves -->
+      <div class="guidance-card">
+        <div class="card-icon-wrap">
+          <span class="material-symbols-outlined">account_tree</span>
+        </div>
+        <h3>What Flattening Achieves</h3>
+        <p class="card-desc">Modern web APIs and document databases return hierarchical trees, but relational engines (PostgreSQL, Snowflake, BigQuery), spreadsheets (Excel), and data frames (pandas) demand 2-dimensional rectangular tables.</p>
+        <ul class="guidance-list">
+          <li><strong>Dot-Notation Paths:</strong> Unnests nested properties like <code>customer.address.city</code> into distinct, readable CSV column headers.</li>
+          <li><strong>Zero Data Loss:</strong> Preserves parent identity and relational context across every flattened row.</li>
+          <li><strong>BI & Warehouse Ready:</strong> Eliminates manual ETL scripts or fragile JSON path extractors in BI dashboards.</li>
+        </ul>
+      </div>
+
+      <!-- Card 2: Depth Decisions -->
+      <div class="guidance-card">
+        <div class="card-icon-wrap">
+          <span class="material-symbols-outlined">layers</span>
+        </div>
+        <h3>Flattening Depth Trade-Offs</h3>
+        <p class="card-desc">Controlling recursion depth balances tabular accessibility with column count sprawl.</p>
+        <div class="spec-matrix">
+          <div class="spec-row">
+            <span class="spec-tag">none</span>
+            <span class="spec-body">Keeps nested objects as raw JSON strings. Ideal when downstream pipelines already parse JSON.</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-tag">depth:1</span>
+            <span class="spec-body">Unnests top-level attributes only; deeper structures remain JSON strings.</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-tag">depth:2</span>
+            <span class="spec-body"><em>Recommended Sweet Spot:</em> Expands metadata and immediate payload models without over-widening tables.</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-tag">full</span>
+            <span class="spec-body">Recursively traverses all object hierarchies down to terminal scalar leaves.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Array Handling Strategies -->
+      <div class="guidance-card">
+        <div class="card-icon-wrap">
+          <span class="material-symbols-outlined">data_array</span>
+        </div>
+        <h3>Array Handling & Use Cases</h3>
+        <p class="card-desc">Arrays cannot be converted into single scalar cells without a deliberate structural transformation.</p>
+        <div class="spec-matrix">
+          <div class="spec-row">
+            <span class="spec-tag">JSON String</span>
+            <span class="spec-body"><strong>Compact:</strong> Retains arrays as deterministic JSON text (e.g. <code>["a", "b"]</code>). Zero row explosion. Safest for multi-array records.</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-tag">Columns</span>
+            <span class="spec-body"><strong>Wide Format:</strong> Generates indexed columns (<code>tags_0</code>, <code>tags_1</code>) up to the cap. Best for fixed tuples (GPS coordinates, top 3 items).</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-tag">Join</span>
+            <span class="spec-body"><strong>Delimiter Text:</strong> Merges primitive elements into a human-readable string (e.g. <code>tag1; tag2</code>). Best for categories, keywords, and Excel search.</span>
+          </div>
+          <div class="spec-row">
+            <span class="spec-tag">Explode</span>
+            <span class="spec-body"><strong>Relational Unnest:</strong> Duplicates parent fields for each array element, producing 1 row per item. Essential for SQL joins. Safeguarded against runaway cartesian products.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: Local Security & CLI Parity -->
+      <div class="guidance-card">
+        <div class="card-icon-wrap">
+          <span class="material-symbols-outlined">shield</span>
+        </div>
+        <h3>Air-Gapped Security & CLI Parity</h3>
+        <p class="card-desc">Engineered for classified networks, security operations, and sensitive customer data.</p>
+        <ul class="guidance-list">
+          <li><strong>Zero Exfiltration:</strong> 100% client-side execution in your browser memory. No telemetry, analytics, or remote API calls.</li>
+          <li><strong>Full CLI Parity:</strong> Identical flattening semantics are powered in Python via <code>python3 flatJSON2csv.py</code> with memory-safe streaming for multi-gigabyte files.</li>
+          <li><strong>Air-Gap Offline HTML:</strong> Click "Air-Gap HTML" to download a self-contained offline application that runs anywhere with no internet connectivity.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── Guidance Bottom & Social Links ──────────────────────────────────── -->
+    <div class="guidance-bottom">
+      <div class="guidance-brand-col">
+        <div class="guidance-brand">
+          <span class="material-symbols-outlined" style="color:var(--champagne); font-size:16px;">dataset</span>
+          <span>Unnest Studio · v1.0.0 Production Architecture</span>
+        </div>
+        <div class="guidance-tagline">ted thought this was functional &amp; fancy</div>
+      </div>
+      <div class="guidance-social-links">
+        <a href="https://github.com/teddymwai/flatJSON2csv" target="_blank" rel="noopener noreferrer" class="social-link" data-tooltip="flatJSON2csv repository on GitHub" data-tooltip-title="Source Code">
+          <span class="material-symbols-outlined" style="font-size:13px;">code</span>
+          GitHub: flatJSON2csv
+        </a>
+        <a href="https://gitlab.com/teddymwai" target="_blank" rel="noopener noreferrer" class="social-link" data-tooltip="teddymwai on GitLab" data-tooltip-title="GitLab">
+          <span class="material-symbols-outlined" style="font-size:13px;">commit</span>
+          GitLab: @teddymwai
+        </a>
+        <a href="https://x.com/teddymwai" target="_blank" rel="noopener noreferrer" class="social-link" data-tooltip="teddymwai on Twitter / X" data-tooltip-title="Twitter / X">
+          <span class="material-symbols-outlined" style="font-size:13px;">alternate_email</span>
+          Twitter/X: @teddymwai
+        </a>
+        <a href="https://instagram.com/teddymwai" target="_blank" rel="noopener noreferrer" class="social-link" data-tooltip="teddymwai on Instagram" data-tooltip-title="Instagram">
+          <span class="material-symbols-outlined" style="font-size:13px;">photo_camera</span>
+          Instagram: @teddymwai
+        </a>
+        <a href="https://linkedin.com/in/teddymwai/" target="_blank" rel="noopener noreferrer" class="social-link" data-tooltip="teddymwai on LinkedIn" data-tooltip-title="LinkedIn">
+          <span class="material-symbols-outlined" style="font-size:13px;">work</span>
+          LinkedIn: teddymwai
+        </a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+(() => {
+  // ── State ────────────────────────────────────────────────────────────────
+  let currentFile = null;
+  let rawText = null;
+  let parsedRecords = [];
+  let discoveredColumns = [];
+  let generatedCsv = "";
+  let isConverting = false;
+  let userExplicitPath = false;
+  let activeColumnFilter = "";
+
+  // ── DOM References ───────────────────────────────────────────────────────
+  const dropzone = document.getElementById("dropzone");
+  const fileInput = document.getElementById("file-input");
+  const dropzoneText = document.getElementById("dropzone-text");
+  const fileInputWrapper = document.getElementById("file-input-wrapper");
+  const pasteInputWrapper = document.getElementById("paste-input-wrapper");
+  const pasteTextarea = document.getElementById("paste-textarea");
+  const btnParsePaste = document.getElementById("btn-parse-paste");
+  const btnClearAll = document.getElementById("btn-clear-all");
+  const btnConvert = document.getElementById("btn-convert");
+  const btnDryRun = document.getElementById("btn-dryrun");
+  const btnQuickCopy = document.getElementById("btn-quick-copy");
+  const btnQuickDownload = document.getElementById("btn-quick-download");
+  const elapsedNode = document.getElementById("elapsed");
+  const meterFileVal = document.getElementById("meter-file-val");
+  const meterRecordsVal = document.getElementById("meter-records-val");
+  const meterColsVal = document.getElementById("meter-cols-val");
+  const meterSpeedVal = document.getElementById("meter-speed-val");
+  const statusProgressBar = document.getElementById("status-progress-bar");
+  const inputPathNode = document.getElementById("input-path");
+  const arrayCapNode = document.getElementById("array-cap");
+  const arrayDelimNode = document.getElementById("array-delim");
+  const allowCartesianNode = document.getElementById("allow-cartesian");
+  const quoteAllNode = document.getElementById("quote-all");
+  const excelBomNode = document.getElementById("excel-bom");
+  const emptyState = document.getElementById("empty-state");
+  const loadingState = document.getElementById("loading-state");
+  const loadingMsg = document.getElementById("loading-msg");
+  const errorState = document.getElementById("error-state");
+  const errorMsg = document.getElementById("error-msg");
+  const btnErrorReset = document.getElementById("btn-error-reset");
+  const previewTable = document.getElementById("preview-table");
+  const tableHead = document.getElementById("table-head");
+  const tableBody = document.getElementById("table-body");
+  const columnsView = document.getElementById("columns-view");
+  const colChipList = document.getElementById("col-chip-list");
+  const tabColCount = document.getElementById("tab-col-count");
+  const rawView = document.getElementById("raw-view");
+  const rawTextarea = document.getElementById("raw-textarea");
+  const btnCopyCols = document.getElementById("btn-copy-cols");
+  const btnDownloadRaw = document.getElementById("btn-download-raw");
+  const colFilterInput = document.getElementById("col-filter-input");
+
+  let activeFlatten = "depth:2";
+  let activeArrayStrategy = "json";
+  let lastFlattenedRows = [];
+
+  // ── Singleton Tooltip Manager ────────────────────────────────────────────
+  const tooltipEl = document.createElement("div");
+  tooltipEl.id = "app-tooltip";
+  tooltipEl.setAttribute("role", "tooltip");
+  tooltipEl.setAttribute("aria-hidden", "true");
+  document.body.appendChild(tooltipEl);
+
+  let activeTooltipTarget = null;
+
+  function showTooltip(target) {
+    const text = target.getAttribute("data-tooltip");
+    if (!text) return;
+    const title = target.getAttribute("data-tooltip-title");
+
+    let html = "";
+    if (title) {
+      html += '<div class="tip-title"><span class="material-symbols-outlined" style="font-size:12px; color:var(--champagne);">info</span>' + escapeHtml(title) + '</div>';
+    }
+    html += '<div class="tip-body">' + escapeHtml(text) + '</div>';
+    tooltipEl.innerHTML = html;
+
+    const rect = target.getBoundingClientRect();
+    const pos = target.getAttribute("data-tooltip-pos") || "top";
+
+    tooltipEl.classList.add("show");
+    tooltipEl.setAttribute("aria-hidden", "false");
+
+    const tipRect = tooltipEl.getBoundingClientRect();
+    let left = rect.left + (rect.width / 2) - (tipRect.width / 2);
+    let top = rect.top - tipRect.height - 8;
+
+    if (pos === "bottom" || top < 8) {
+      top = rect.bottom + 8;
+    }
+    if (pos === "right") {
+      left = rect.right + 8;
+      top = rect.top + (rect.height / 2) - (tipRect.height / 2);
+    }
+
+    if (left < 10) left = 10;
+    if (left + tipRect.width > window.innerWidth - 10) {
+      left = window.innerWidth - tipRect.width - 10;
+    }
+    if (top + tipRect.height > window.innerHeight - 10) {
+      top = rect.top - tipRect.height - 8;
+    }
+
+    tooltipEl.style.left = Math.round(left) + "px";
+    tooltipEl.style.top = Math.round(top) + "px";
+    activeTooltipTarget = target;
+  }
+
+  function hideTooltip() {
+    tooltipEl.classList.remove("show");
+    tooltipEl.setAttribute("aria-hidden", "true");
+    activeTooltipTarget = null;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  document.addEventListener("mouseover", e => {
+    const target = e.target.closest("[data-tooltip]");
+    if (target) showTooltip(target);
+  });
+
+  document.addEventListener("mouseout", e => {
+    const target = e.target.closest("[data-tooltip]");
+    if (target && target === activeTooltipTarget) hideTooltip();
+  });
+
+  document.addEventListener("focusin", e => {
+    const target = e.target.closest("[data-tooltip]");
+    if (target) showTooltip(target);
+  });
+
+  document.addEventListener("focusout", e => {
+    const target = e.target.closest("[data-tooltip]");
+    if (target && target === activeTooltipTarget) hideTooltip();
+  });
+
+  // ── Loading & Error State Helpers ────────────────────────────────────────
+  function showLoading(msg) {
+    if (loadingMsg) loadingMsg.textContent = msg || "Processing dataset...";
+    if (loadingState) loadingState.style.display = "flex";
+    if (emptyState) emptyState.style.display = "none";
+    if (errorState) errorState.style.display = "none";
+    if (previewTable) previewTable.style.display = "none";
+  }
+
+  function hideLoading() {
+    if (loadingState) loadingState.style.display = "none";
+  }
+
+  function showErrorState(msg) {
+    hideLoading();
+    if (emptyState) emptyState.style.display = "none";
+    if (previewTable) previewTable.style.display = "none";
+    if (errorState) {
+      errorState.style.display = "flex";
+      if (errorMsg) errorMsg.textContent = msg;
+    }
+  }
+
+  if (btnErrorReset) {
+    btnErrorReset.addEventListener("click", resetResults);
+  }
+
+  // ── Input Mode Switcher ──────────────────────────────────────────────────
+  document.querySelectorAll("#input-mode-chips .chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#input-mode-chips .chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const mode = btn.dataset.mode;
+      fileInputWrapper.style.display = mode === "file" ? "block" : "none";
+      pasteInputWrapper.style.display = mode === "paste" ? "flex" : "none";
+      if (mode === "paste") pasteTextarea.focus();
+    });
+  });
+
+  // ── Chip Toggles ─────────────────────────────────────────────────────────
+  document.querySelectorAll("#flatten-chips .chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#flatten-chips .chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeFlatten = btn.dataset.val;
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, autoTrigger: true });
+      }
+    });
+  });
+
+  document.querySelectorAll("#array-chips .chip-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#array-chips .chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeArrayStrategy = btn.dataset.val;
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, autoTrigger: true });
+      }
+    });
+  });
+
+  [arrayCapNode, arrayDelimNode, allowCartesianNode, quoteAllNode].forEach(node => {
+    node.addEventListener("change", () => {
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, autoTrigger: true });
+      }
+    });
+  });
+
+  inputPathNode.addEventListener("input", () => {
+    userExplicitPath = inputPathNode.value.trim().length > 0;
+    if (rawText) {
+      parseInputData();
+    }
+  });
+
+  // ── Real-Time In-Table Column Filter ────────────────────────────────────
+  if (colFilterInput) {
+    colFilterInput.addEventListener("input", () => {
+      activeColumnFilter = colFilterInput.value.trim().toLowerCase();
+      applyColumnFilter();
+    });
+  }
+
+  function applyColumnFilter() {
+    if (!discoveredColumns || discoveredColumns.length === 0) return;
+    const filter = activeColumnFilter;
+    const ths = tableHead.querySelectorAll("th");
+    const trs = tableBody.querySelectorAll("tr");
+
+    discoveredColumns.forEach((col, idx) => {
+      const match = !filter || col.toLowerCase().includes(filter);
+      const displayVal = match ? "" : "none";
+      if (ths[idx]) ths[idx].style.display = displayVal;
+      trs.forEach(tr => {
+        const td = tr.children[idx];
+        if (td) td.style.display = displayVal;
+      });
+    });
+
+    // Also filter column chips
+    const chips = colChipList.querySelectorAll(".col-chip");
+    chips.forEach(chip => {
+      const match = !filter || chip.textContent.toLowerCase().includes(filter);
+      chip.style.display = match ? "inline-flex" : "none";
+    });
+  }
+
+  // ── Tab Navigation ───────────────────────────────────────────────────────
+  document.querySelectorAll("#results-tabs .tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#results-tabs .tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const tab = btn.dataset.tab;
+      document.getElementById("table-container").style.display = tab === "table" ? "block" : "none";
+      columnsView.style.display = tab === "columns" ? "flex" : "none";
+      rawView.style.display = tab === "raw" ? "flex" : "none";
+    });
+  });
+
+  // ── File Drop & Load ─────────────────────────────────────────────────────
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") fileInput.click(); });
+
+  ["dragenter", "dragover"].forEach(evt => {
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.add("drag-over");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(evt => {
+    dropzone.addEventListener(evt, e => {
+      e.preventDefault();
+      dropzone.classList.remove("drag-over");
+    });
+  });
+
+  dropzone.addEventListener("drop", e => {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length > 0) handleFile(files[0]);
+  });
+
+  // Global window drop listener: allow dragging files anywhere onto page
+  window.addEventListener("dragover", e => e.preventDefault());
+  window.addEventListener("drop", e => {
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener("change", e => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      fileInput.value = ""; // Crucial: clear so re-uploading same file fires change event
+      handleFile(file);
+    }
+  });
+
+  // ── Paste Handling ───────────────────────────────────────────────────────
+  let pasteDebounceTimer = null;
+  pasteTextarea.addEventListener("input", () => {
+    clearTimeout(pasteDebounceTimer);
+    pasteDebounceTimer = setTimeout(() => {
+      const val = pasteTextarea.value.trim();
+      if (val.length > 0) {
+        handlePastedText(val);
+      }
+    }, 350);
+  });
+
+  btnParsePaste.addEventListener("click", () => {
+    const val = pasteTextarea.value.trim();
+    if (val.length > 0) {
+      handlePastedText(val);
+    }
+  });
+
+  // Global paste shortcut: Cmd+V / Ctrl+V anywhere
+  window.addEventListener("paste", e => {
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+    if (activeTag === "input" || activeTag === "textarea") return;
+    const pasted = (e.clipboardData || window.clipboardData).getData("text");
+    if (pasted && (pasted.trim().startsWith("{") || pasted.trim().startsWith("["))) {
+      e.preventDefault();
+      document.getElementById("chip-mode-paste").click();
+      pasteTextarea.value = pasted;
+      handlePastedText(pasted);
+    }
+  });
+
+  // ── Reset All ────────────────────────────────────────────────────────────
+  btnClearAll.addEventListener("click", resetResults);
+
+  function resetResults() {
+    parsedRecords = [];
+    discoveredColumns = [];
+    generatedCsv = "";
+    lastFlattenedRows = [];
+    currentFile = null;
+    rawText = null;
+    userExplicitPath = false;
+    fileInput.value = "";
+    pasteTextarea.value = "";
+    dropzoneText.textContent = "Drop JSON or NDJSON here";
+    meterFileVal.textContent = "No file loaded";
+    meterRecordsVal.textContent = "0 records";
+    meterColsVal.textContent = "0 cols";
+    meterSpeedVal.textContent = "0 rows/s";
+    if (statusProgressBar) statusProgressBar.style.width = "0%";
+    elapsedNode.textContent = "0.0s";
+    tabColCount.textContent = "0";
+    if (colFilterInput) colFilterInput.value = "";
+    activeColumnFilter = "";
+    tableHead.replaceChildren();
+    tableBody.replaceChildren();
+    colChipList.replaceChildren();
+    rawTextarea.value = "";
+    hideLoading();
+    if (errorState) errorState.style.display = "none";
+    emptyState.style.display = "flex";
+    previewTable.style.display = "none";
+    btnConvert.disabled = true;
+    btnDryRun.disabled = true;
+    btnQuickCopy.disabled = true;
+    btnQuickDownload.disabled = true;
+    inputPathNode.value = "";
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  async function handleFile(file) {
+    if (!file) return;
+    try {
+      currentFile = file;
+      dropzoneText.textContent = file.name;
+      meterFileVal.textContent = file.name + " (" + formatBytes(file.size) + ")";
+      if (!userExplicitPath) inputPathNode.value = "";
+      showLoading("Reading " + file.name + " (" + formatBytes(file.size) + ")...");
+      rawText = await file.text();
+      parseInputData();
+    } catch (err) {
+      console.error("Error reading file:", err);
+      showErrorState("Unable to read file \"" + file.name + "\": " + err.message);
+    }
+  }
+
+  function handlePastedText(text) {
+    currentFile = { name: "pasted_dataset.json", size: new Blob([text]).size };
+    rawText = text;
+    dropzoneText.textContent = "Pasted JSON Data";
+    meterFileVal.textContent = "Pasted (" + formatBytes(currentFile.size) + ")";
+    if (!userExplicitPath) inputPathNode.value = "";
+    showLoading("Parsing pasted dataset...");
+    parseInputData();
+  }
+
+  function parseInputData() {
+    parsedRecords = [];
+    if (!rawText || !rawText.trim()) {
+      resetResults();
+      return;
+    }
+
+    let text = rawText.trim();
+    if (text.charCodeAt(0) === 0xFEFF) {
+      text = text.slice(1).trim();
+    }
+
+    const isNdjsonExtension = currentFile && (currentFile.name.endsWith(".ndjson") || currentFile.name.endsWith(".jsonl"));
+    let parsedSuccessfully = false;
+
+    if (isNdjsonExtension) {
+      const lines = text.split(/\r?\n/);
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            parsedRecords.push(JSON.parse(line));
+          } catch (err) {}
+        }
+      }
+      if (parsedRecords.length > 0) parsedSuccessfully = true;
+    }
+
+    if (!parsedSuccessfully) {
+      try {
+        const root = JSON.parse(text);
+        parsedSuccessfully = true;
+        if (Array.isArray(root)) {
+          parsedRecords = root;
+          if (!userExplicitPath) inputPathNode.value = "";
+        } else if (typeof root === "object" && root !== null) {
+          const manualPath = inputPathNode.value.trim();
+          let resolved = manualPath ? getNestedValue(root, manualPath) : null;
+          if (resolved !== null && resolved !== undefined) {
+            if (Array.isArray(resolved)) {
+              parsedRecords = resolved;
+            } else if (typeof resolved === "object") {
+              parsedRecords = [resolved];
+            } else {
+              parsedRecords = [{ value: resolved }];
+            }
+          } else {
+            const detected = autoDetectRecordArray(root);
+            if (detected) {
+              parsedRecords = detected.array;
+              if (!userExplicitPath) inputPathNode.value = detected.path;
+            } else {
+              parsedRecords = [root];
+              if (!userExplicitPath) inputPathNode.value = "";
+            }
+          }
+        } else {
+          parsedRecords = [{ value: root }];
+          if (!userExplicitPath) inputPathNode.value = "";
+        }
+      } catch (jsonErr) {
+        // Fallback: try parsing as line-by-line NDJSON
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        const ndjsonItems = [];
+        let validLines = 0;
+        for (const line of lines) {
+          try {
+            ndjsonItems.push(JSON.parse(line));
+            validLines++;
+          } catch (e) {
+            break;
+          }
+        }
+        if (validLines > 0 && validLines === lines.length) {
+          parsedRecords = ndjsonItems;
+          parsedSuccessfully = true;
+        } else {
+          showErrorState("Could not parse JSON or NDJSON syntax: " + jsonErr.message);
+          return;
+        }
+      }
+    }
+
+    // Normalize: wrap any top-level primitive array elements into objects
+    parsedRecords = parsedRecords.map(item => {
+      if (typeof item !== "object" || item === null) {
+        return { value: item };
+      }
+      return item;
+    });
+
+    meterRecordsVal.textContent = parsedRecords.length.toLocaleString() + " records";
+
+    if (parsedRecords.length > 0) {
+      btnConvert.disabled = false;
+      btnDryRun.disabled = false;
+      btnQuickCopy.disabled = false;
+      btnQuickDownload.disabled = false;
+      runProcessing({ dryRun: false, autoTrigger: true });
+    } else {
+      emptyState.style.display = "flex";
+      previewTable.style.display = "none";
+      hideLoading();
+    }
+  }
+
+  function getNestedValue(obj, path) {
+    return path.split(".").reduce((acc, part) => acc && acc[part] !== undefined ? acc[part] : null, obj);
+  }
+
+  function autoDetectRecordArray(obj) {
+    const candidates = [];
+    function scan(node, currentPath, depth) {
+      if (depth > 5) return;
+      if (typeof node !== "object" || node === null) return;
+      for (const key of Object.keys(node)) {
+        const childPath = currentPath ? currentPath + "." + key : key;
+        const val = node[key];
+        if (Array.isArray(val) && val.length > 0) {
+          const hasObjects = typeof val[0] === "object" && val[0] !== null;
+          candidates.push({ path: childPath, depth, count: val.length, hasObjects, array: val });
+        } else if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+          scan(val, childPath, depth + 1);
+        }
+      }
+    }
+    scan(obj, "", 0);
+    if (candidates.length === 0) return null;
+    candidates.sort((a, b) => {
+      // Prioritize object arrays over primitive arrays if substantial
+      if (a.hasObjects && !b.hasObjects && a.count >= b.count) return -1;
+      if (!a.hasObjects && b.hasObjects && b.count >= a.count) return 1;
+      // Prioritize largest record array count
+      if (b.count !== a.count) return b.count - a.count;
+      // If equal count, prefer shallower depth
+      return a.depth - b.depth;
+    });
+    return candidates[0];
+  }
+
+  // ── Flattening Core ──────────────────────────────────────────────────────
+  function getMaxDepth() {
+    if (activeFlatten === "none") return 0;
+    if (activeFlatten === "full") return null;
+    if (activeFlatten.startsWith("depth:")) return parseInt(activeFlatten.split(":")[1], 10);
+    return 2;
+  }
+
+  function flattenValue(val, prefix, depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian) {
+    if (val === null || val === undefined) return [{ [prefix || "value"]: "" }];
+    if (typeof val === "boolean") return [{ [prefix || "value"]: val ? "true" : "false" }];
+    if (typeof val === "number" || typeof val === "string") return [{ [prefix || "value"]: String(val) }];
+
+    if (Array.isArray(val)) {
+      if (arrayStrategy === "explode") {
+        if (val.length === 0) return [{ [prefix || "value"]: "" }];
+        const rows = [];
+        for (const item of val) {
+          rows.push(...flattenValue(item, prefix || "value", depth, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian));
+        }
+        return rows;
+      } else if (arrayStrategy === "join") {
+        const joined = val.map(i => (typeof i === "object" && i !== null ? JSON.stringify(i) : (i ?? ""))).join(arrayDelim);
+        return [{ [prefix || "value"]: joined }];
+      } else if (arrayStrategy === "columns") {
+        if (val.length > arrayCap) return [{ [prefix || "value"]: JSON.stringify(val) }];
+        let rows = [{}];
+        val.forEach((item, idx) => {
+          const subPrefix = prefix ? prefix + "_" + idx : String(idx);
+          const subRows = flattenValue(item, subPrefix, depth + 1, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian);
+          rows = mergeRows(rows, subRows, allowCartesian);
+        });
+        return rows;
+      } else {
+        return [{ [prefix || "value"]: JSON.stringify(val) }];
+      }
+    }
+
+    if (typeof val === "object") {
+      if (maxDepth !== null && depth >= maxDepth) return [{ [prefix || "value"]: JSON.stringify(val) }];
+      const keys = Object.keys(val);
+      if (keys.length === 0) return [{ [prefix || "value"]: "{}" }];
+      let rows = [{}];
+      for (const key of keys) {
+        const subPrefix = prefix ? prefix + "." + key : key;
+        const subRows = flattenValue(val[key], subPrefix, depth + 1, maxDepth, arrayStrategy, arrayCap, arrayDelim, allowCartesian);
+        rows = mergeRows(rows, subRows, allowCartesian);
+      }
+      return rows;
+    }
+
+    return [{ [prefix || "value"]: String(val) }];
+  }
+
+  function mergeRows(left, right, allowCartesian) {
+    if (left.length > 1 && right.length > 1 && !allowCartesian) {
+      console.warn("Cartesian product warning: multiple exploded arrays encountered.");
+    }
+    const merged = [];
+    for (const l of left) {
+      for (const r of right) {
+        merged.push({ ...l, ...r });
+      }
+    }
+    return merged;
+  }
+
+  function flattenRecord(record) {
+    const maxDepth = getMaxDepth();
+    const arrayCap = parseInt(arrayCapNode.value, 10) || 10;
+    const arrayDelim = arrayDelimNode.value || "; ";
+    const allowCartesian = allowCartesianNode.checked;
+    return flattenValue(record, "", 0, maxDepth, activeArrayStrategy, arrayCap, arrayDelim, allowCartesian);
+  }
+
+  // ── Actions ──────────────────────────────────────────────────────────────
+  btnDryRun.addEventListener("click", () => runProcessing({ dryRun: true }));
+  btnConvert.addEventListener("click", () => runProcessing({ dryRun: false }));
+  btnQuickDownload.addEventListener("click", triggerDownload);
+  btnQuickCopy.addEventListener("click", copyCsvToClipboard);
+
+  async function copyCsvToClipboard() {
+    if (!generatedCsv) {
+      if (parsedRecords.length > 0) {
+        await runProcessing({ dryRun: false, autoTrigger: true });
+      } else {
+        return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(generatedCsv);
+      const originalHTML = btnQuickCopy.innerHTML;
+      btnQuickCopy.innerHTML = '<span class="material-symbols-outlined" style="font-size:14px; color:var(--ok);">check</span> Copied!';
+      setTimeout(() => { btnQuickCopy.innerHTML = originalHTML; }, 2000);
+    } catch (err) {
+      rawTextarea.select();
+      document.execCommand("copy");
+      alert("Copied CSV to clipboard!");
+    }
+  }
+
+  async function runProcessing({ dryRun, autoTrigger = false }) {
+    if (isConverting || parsedRecords.length === 0) return;
+    isConverting = true;
+    btnConvert.disabled = true;
+    btnDryRun.disabled = true;
+    showLoading(dryRun ? "Scanning column schema..." : "Flattening " + parsedRecords.length.toLocaleString() + " records...");
+
+    const started = performance.now();
+    try {
+      const colSet = new Set();
+      const allFlattenedRows = [];
+
+      const chunkSize = 250;
+      for (let i = 0; i < parsedRecords.length; i += chunkSize) {
+        const slice = parsedRecords.slice(i, i + chunkSize);
+        for (const rec of slice) {
+          const rows = flattenRecord(rec);
+          for (const row of rows) {
+            for (const key of Object.keys(row)) colSet.add(key || "value");
+            if (!dryRun) allFlattenedRows.push(row);
+          }
+        }
+        const elapsedSec = ((performance.now() - started) / 1000).toFixed(2);
+        elapsedNode.textContent = elapsedSec + "s";
+        const pct = Math.min(100, Math.round(((i + slice.length) / parsedRecords.length) * 100));
+        if (statusProgressBar) statusProgressBar.style.width = pct + "%";
+        meterSpeedVal.textContent = Math.round((i + slice.length) / Math.max(0.05, (performance.now() - started) / 1000)) + " rows/s";
+        if (parsedRecords.length > 500) {
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      discoveredColumns = Array.from(colSet).sort();
+      lastFlattenedRows = allFlattenedRows;
+      tabColCount.textContent = discoveredColumns.length;
+      meterColsVal.textContent = discoveredColumns.length + " cols";
+      if (statusProgressBar) statusProgressBar.style.width = "100%";
+
+      // Render columns view
+      colChipList.replaceChildren();
+      discoveredColumns.forEach(col => {
+        const chip = document.createElement("div");
+        chip.className = "col-chip";
+        chip.textContent = col;
+        chip.setAttribute("data-tooltip", "Column: " + col);
+        chip.setAttribute("data-tooltip-title", "Discovered Column");
+        colChipList.appendChild(chip);
+      });
+
+      if (dryRun) {
+        document.querySelector('[data-tab="columns"]').click();
+      } else {
+        // Build CSV
+        const quoteAll = quoteAllNode.checked;
+        const csvLines = [];
+        csvLines.push(discoveredColumns.map(c => escapeCsvCell(c, quoteAll)).join(","));
+
+        for (const row of allFlattenedRows) {
+          const line = discoveredColumns.map(col => escapeCsvCell(row[col] ?? "", quoteAll)).join(",");
+          csvLines.push(line);
+        }
+
+        generatedCsv = csvLines.join("\r\n");
+        const previewLines = csvLines.slice(0, 25).map(l => l.length > 800 ? l.slice(0, 797) + "…" : l);
+        rawTextarea.value = previewLines.join("\r\n") + (csvLines.length > 25 ? "\n\n... [" + (csvLines.length - 25) + ' more rows — click "Download Full CSV" or "Copy CSV" for complete dataset]' : "");
+
+        // Switch to Table Tab on successful conversion so preview is visible
+        document.querySelector('#results-tabs [data-tab="table"]').click();
+
+        // Render Table Preview
+        renderTablePreview(allFlattenedRows.slice(0, 50), discoveredColumns);
+
+        if (!autoTrigger) {
+          triggerDownload();
+        }
+      }
+
+      const totalSec = ((performance.now() - started) / 1000).toFixed(2);
+      elapsedNode.textContent = totalSec + "s";
+    } catch (err) {
+      console.error("Conversion error:", err);
+      showErrorState("Error during conversion: " + err.message);
+    } finally {
+      isConverting = false;
+      btnConvert.disabled = false;
+      btnDryRun.disabled = false;
+      btnQuickCopy.disabled = !generatedCsv;
+      btnQuickDownload.disabled = !generatedCsv;
+      hideLoading();
+      setTimeout(() => { if (statusProgressBar) statusProgressBar.style.width = "0%"; }, 800);
+    }
+  }
+
+  function escapeCsvCell(val, quoteAll) {
+    const str = String(val).replace(/\r\n|\r|\n/g, " ");
+    const mustQuote = quoteAll || str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r");
+    if (mustQuote) return '"' + str.replace(/"/g, '""') + '"';
+    return str;
+  }
+
+  function renderTablePreview(rows, cols) {
+    hideLoading();
+    if (errorState) errorState.style.display = "none";
+    emptyState.style.display = "none";
+    previewTable.style.display = "table";
+
+    tableHead.replaceChildren();
+    const headRow = document.createElement("tr");
+    cols.forEach(c => {
+      const th = document.createElement("th");
+      th.textContent = c;
+      th.setAttribute("data-tooltip", "Column: " + c);
+      th.setAttribute("data-tooltip-title", "CSV Column Header");
+      headRow.appendChild(th);
+    });
+    tableHead.appendChild(headRow);
+
+    tableBody.replaceChildren();
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      cols.forEach(c => {
+        const td = document.createElement("td");
+        const cellText = String(r[c] ?? "");
+        td.textContent = cellText.length > 220 ? cellText.slice(0, 217) + "…" : cellText;
+        if (cellText.length > 220) td.title = cellText.slice(0, 400);
+        tr.appendChild(td);
+      });
+      tableBody.appendChild(tr);
+    });
+
+    applyColumnFilter();
+
+    const container = document.getElementById("table-container");
+    if (container) {
+      container.scrollTop = 0;
+      container.scrollLeft = 0;
+    }
+  }
+
+  function triggerDownload() {
+    if (!generatedCsv) {
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false });
+      }
+      return;
+    }
+    const addBom = excelBomNode.checked;
+    const blobParts = addBom ? ["\uFEFF", generatedCsv] : [generatedCsv];
+    const blob = new Blob(blobParts, { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const outName = currentFile ? currentFile.name.replace(/\.[^/.]+$/, "") + ".csv" : "converted.csv";
+    a.href = url;
+    a.download = outName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
+  btnDownloadRaw.addEventListener("click", triggerDownload);
+
+  btnCopyCols.addEventListener("click", () => {
+    navigator.clipboard.writeText(discoveredColumns.join(", "));
+    alert("Copied " + discoveredColumns.length + " column names to clipboard.");
+  });
+
+  // CyberChef Air-Gap Standalone Download
+  document.getElementById("btn-airgap-dl").addEventListener("click", () => {
+    const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "unnest_studio_airgap.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  });
+
+  // Interactive Demo Loader
+  const DEMO_DATA = {
+    status: "ok",
+    data: {
+      content: [
+        {
+          id: "CT-001",
+          name: "Fortiphyd Water Treatment Fix",
+          author: "ted",
+          status: "VERIFIED",
+          tags: ["water", "scada", "plc", "modbus"],
+          sizingStats: { cpu: 4, ramMb: 8192, diskGb: 80, containers: 2 },
+          versionInfo: { version: "2.4.1", platformVersion: "3.15" }
+        },
+        {
+          id: "CT-002",
+          name: "Substation IEC-61850 Grid Defense",
+          author: "ted",
+          status: "TESTING",
+          tags: ["grid", "substation", "goose"],
+          sizingStats: { cpu: 8, ramMb: 16384, diskGb: 160, containers: 4 },
+          versionInfo: { version: "1.0.0", platformVersion: "3.15" }
+        },
+        {
+          id: "CT-003",
+          name: "Corporate Perimeter Firewall & DMZ",
+          author: "alex",
+          status: "VERIFIED",
+          tags: ["firewall", "dmz", "pfsense", "snort"],
+          sizingStats: { cpu: 2, ramMb: 4096, diskGb: 40, containers: 1 },
+          versionInfo: { version: "3.0.2", platformVersion: "3.14" }
+        }
+      ]
+    }
+  };
+
+  document.getElementById("btn-load-demo").addEventListener("click", () => {
+    userExplicitPath = false;
+    currentFile = { name: "sample_cloudtemplates_demo.json", size: JSON.stringify(DEMO_DATA).length };
+    rawText = JSON.stringify(DEMO_DATA, null, 2);
+    dropzoneText.textContent = "sample_cloudtemplates_demo.json";
+    meterFileVal.textContent = "sample_cloudtemplates_demo.json (Demo)";
+    parseInputData();
+  });
+
+  // Register Service Worker for offline PWA caching
+  if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(err => console.debug('SW reg skipped:', err));
+    });
+  }
+})();
+</script>
+</body>
+</html>

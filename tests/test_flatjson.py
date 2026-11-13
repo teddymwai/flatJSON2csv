@@ -8,9 +8,28 @@ import tempfile
 from pathlib import Path
 import unittest
 
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 csv.field_size_limit(sys.maxsize)
 
 from converter import discover_inputs, load_config, run_conversion, DEFAULTS
+
+CLI_SCRIPT = str(ROOT_DIR / "flatJSON2csv.py")
+
+
+def _find_sample(name: str) -> Path | None:
+    candidates = [
+        ROOT_DIR / "samples" / name,
+        ROOT_DIR / name,
+        Path("samples") / name,
+        Path(name),
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
 
 
 class FlatJsonTests(unittest.TestCase):
@@ -104,7 +123,7 @@ class FlatJsonTests(unittest.TestCase):
         in_file.write_text(json.dumps({"msg": "hello"}))
 
         result = subprocess.run(
-            [sys.executable, "flatJSON2csv.py", str(in_file)],
+            [sys.executable, CLI_SCRIPT, str(in_file)],
             capture_output=True,
             text=True
         )
@@ -117,7 +136,7 @@ class FlatJsonTests(unittest.TestCase):
         in_file.write_text(json.dumps({"metric": 42}))
 
         result = subprocess.run(
-            [sys.executable, "flatJSON2csv.py", "--dry-run", str(in_file)],
+            [sys.executable, CLI_SCRIPT, "--dry-run", str(in_file)],
             capture_output=True,
             text=True
         )
@@ -125,8 +144,8 @@ class FlatJsonTests(unittest.TestCase):
         self.assertIn("metric", result.stdout)
 
     def test_real_cyberec_scenario(self):
-        source = Path("cyberec_scenario.json")
-        if not source.exists():
+        source = _find_sample("cyberec_scenario.json")
+        if not source:
             self.skipTest("cyberec_scenario.json not found")
         target = self.dir_path / "cyberec_test.csv"
         cols = run_conversion(source, target, DEFAULTS.copy())
@@ -137,8 +156,8 @@ class FlatJsonTests(unittest.TestCase):
             self.assertEqual(reader[0]["id"], "6ae055aae3932d60d529468c")
 
     def test_real_iev3_cloudtemplates(self):
-        source = Path("iev3_cloudtemplates_616.json")
-        if not source.exists():
+        source = _find_sample("iev3_cloudtemplates_616.json")
+        if not source:
             self.skipTest("iev3_cloudtemplates_616.json not found")
         target = self.dir_path / "iev3_test.csv"
         cols = run_conversion(source, target, DEFAULTS.copy())
@@ -149,8 +168,8 @@ class FlatJsonTests(unittest.TestCase):
             self.assertEqual(reader[0]["id"], "6aeb9b79929abf0c73fbba1b")
 
     def test_real_iev2_cloudtemplates(self):
-        source = Path("iev2_cloudtemplates_1114.json")
-        if not source.exists():
+        source = _find_sample("iev2_cloudtemplates_1114.json")
+        if not source:
             self.skipTest("iev2_cloudtemplates_1114.json not found")
         target = self.dir_path / "iev2_test.csv"
         cols = run_conversion(source, target, DEFAULTS.copy())

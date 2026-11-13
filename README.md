@@ -49,7 +49,7 @@ flatJSON2csv --web
 flatJSON2csv --web 9000
 ```
 
-You can also simply open `flatJSON/web/index.html` directly in any browser (`file:///...`).
+You can also simply open `unnest_studio.html` (or `web/index.html`) directly in any browser (`file:///...`).
 
 ### 2. Deploying Online via GitHub Pages
 
@@ -160,6 +160,30 @@ flatJSON2csv input.json -o out.csv --array-strategy explode --allow-cartesian
 - The hosted interface loads its icon font stylesheet from Google Fonts; input data is not included in that request.
 - No telemetry, analytics, or update checks.
 - Streaming architecture prevents memory exhaustion on large datasets.
+
+---
+
+## Repository Structure
+
+```text
+flatJSON/
+├── docs/                 # Technical documentation & data specifications (SCHEMA.md)
+├── samples/              # Real-world benchmark JSON datasets and sample outputs
+├── tests/                # Automated unit and regression test suite
+├── ui-mantra/            # Design system, brand palette, and HIG guidelines
+├── web/                  # Web application assets for GitHub Pages and offline PWA
+├── unnest_studio.html    # Standalone, zero-install Web Studio GUI
+├── flatJSON2csv.py       # Command-line interface and local loopback server
+├── converter.py          # Core streaming two-pass conversion engine
+├── pyproject.toml        # Package metadata and entry points (unnest, flatJSON2csv)
+└── requirements.txt      # Python runtime dependencies (ijson)
+```
+
+---
+
+## Technical Specifications
+
+For full details on input shapes, array handling, and nested path flattening, see the [Input and Output Schema](docs/SCHEMA.md).
 
 ---
 

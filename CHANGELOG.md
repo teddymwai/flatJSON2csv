@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.1.1] - 2026-11-13 (Directory Architecture & Tool-Role Renaming)
+
+### Added
+- **Dedicated Sub-Directories:**
+  - `samples/`: Centralized real-world sample datasets (`cyberec_scenario.json`, `iev2_cloudtemplates_1114.json`, `iev3_cloudtemplates_616.json`) and converted reference CSV outputs with `samples/README.md`.
+  - `tests/`: Organized test suite into standard `tests/` directory with `tests/__init__.py` and dynamic sample path resolution.
+  - `docs/`: Relocated technical data specification into `docs/SCHEMA.md`.
+- **Offline PWA Cache Update:** Bumped Service Worker cache to `flatJSON2csv-v6` caching both `./index.html` and `./unnest_studio.html`.
+
+### Changed
+- **Renamed Web Entry to Tool-Role Format (`unnest_studio.html`):** Renamed root `index.html` to `unnest_studio.html` following `<tool>_<role>.html` conventions to clearly showcase its role as the Unnest Web Studio.
+- **Root Directory Cleanup:** Cleaned loose sample data files from the repository root, keeping only essential project root configuration, modules, and documentation.
+
+
 ## [1.1.0] - 2026-11-13 (Unnest Studio Architecture Redesign)
 
 ### Added

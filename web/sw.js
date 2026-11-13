@@ -1,8 +1,9 @@
-/* flatJSON2csv Service Worker — Offline Caching (CyberChef model) */
-const CACHE_NAME = 'flatJSON2csv-v5';
+/* Unnest Studio Service Worker — Offline Caching (CyberChef model) */
+const CACHE_NAME = 'flatJSON2csv-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './unnest_studio.html',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200'
 ];
