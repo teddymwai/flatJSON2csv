@@ -1524,15 +1524,15 @@
                 <span class="material-symbols-outlined" style="font-size:12px;">check_circle</span>
                 Validate
               </button>
-              <button type="button" id="btn-explore-tree" class="btn btn-secondary" style="min-height:24px; padding:0 8px; font-size:10px;" data-tooltip="Inspect and interactively explore collapsible tree with word-click highlighting." data-tooltip-title="Interactive Tree">
-                <span class="material-symbols-outlined" style="font-size:12px; color:var(--champagne);">account_tree</span>
-                Explore Tree
-              </button>
             </div>
           </div>
           <textarea id="paste-textarea" class="text-input" placeholder="Paste JSON array, object, or NDJSON lines here (or Cmd+V anywhere)..." style="width:100%; height:110px; font-family:var(--font-mono); font-size:11.5px; resize:vertical; padding:10px; line-height:1.4;" data-tooltip="Paste raw JSON text or NDJSON stream lines here." data-tooltip-title="Direct Paste Input"></textarea>
           <div id="paste-syntax-msg" style="display:none; font-size:10.5px; font-family:var(--font-mono); padding:6px 8px; border-radius:6px; line-height:1.3;"></div>
-          <button type="button" id="btn-parse-paste" class="btn btn-primary" style="min-height:30px; font-size:11px; width:100%;" data-tooltip="Parse and preview the pasted JSON data." data-tooltip-title="Load Action">
+          <button type="button" id="btn-explore-tree" class="btn btn-secondary" style="min-height:30px; font-size:11px; width:100%; border-color:var(--border-subtle); display:flex; align-items:center; justify-content:center; gap:6px;" data-tooltip="Inspect and interactively explore collapsible tree with word-click highlighting." data-tooltip-title="Interactive Tree Explorer">
+            <span class="material-symbols-outlined" style="font-size:15px; color:var(--champagne);">account_tree</span>
+            Explore Interactive Tree
+          </button>
+          <button type="button" id="btn-parse-paste" class="btn btn-primary" style="min-height:30px; font-size:11px; width:100%; display:flex; align-items:center; justify-content:center; gap:6px;" data-tooltip="Parse and preview the pasted JSON data." data-tooltip-title="Load Action">
             <span class="material-symbols-outlined" style="font-size:14px;">play_arrow</span>
             Load Pasted JSON
           </button>
