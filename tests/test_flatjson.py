@@ -179,6 +179,56 @@ class FlatJsonTests(unittest.TestCase):
             self.assertEqual(len(reader), 1114)
             self.assertEqual(reader[0]["id"], "6ad760e97953542e8b61efb1")
 
+    def test_xlsx_export(self):
+        try:
+            import openpyxl
+        except ImportError:
+            self.skipTest("openpyxl not installed")
+
+        in_file = self.dir_path / "records.json"
+        out_xlsx = self.dir_path / "records.xlsx"
+        in_file.write_text(json.dumps([
+            {"id": "U1", "name": "Alice", "score": 95, "active": True},
+            {"id": "U2", "name": "Bob", "score": 88, "active": False}
+        ]))
+
+        cols = run_conversion(in_file, out_xlsx, DEFAULTS.copy())
+        self.assertEqual(sorted(cols), ["active", "id", "name", "score"])
+        self.assertTrue(out_xlsx.exists())
+
+        wb = openpyxl.load_workbook(out_xlsx)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(rows[0], ("active", "id", "name", "score"))
+        self.assertEqual(rows[1], (True, "U1", "Alice", 95))
+        self.assertEqual(rows[2], (False, "U2", "Bob", 88))
+
+    def test_cli_xlsx_format_flag(self):
+        try:
+            import openpyxl
+        except ImportError:
+            self.skipTest("openpyxl not installed")
+
+        in_file = self.dir_path / "test_cli.json"
+        expected_xlsx = self.dir_path / "test_cli.xlsx"
+        in_file.write_text(json.dumps([{"metric": "latency", "val": 12}]))
+
+        result = subprocess.run(
+            [sys.executable, CLI_SCRIPT, str(in_file), "--format", "xlsx"],
+            capture_output=True,
+            text=True
+        )
+        self.assertEqual(result.returncode, 0)
+        self.assertTrue(expected_xlsx.exists())
+
+        wb = openpyxl.load_workbook(expected_xlsx)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[0], ("metric", "val"))
+        self.assertEqual(rows[1], ("latency", 12))
+
 
 if __name__ == "__main__":
     unittest.main()

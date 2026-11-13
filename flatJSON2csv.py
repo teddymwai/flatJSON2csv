@@ -18,12 +18,18 @@ from converter import ConverterError, discover_inputs, load_config, run_conversi
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="unnest",
-        description="Unnest Studio (flatJSON2csv) — The local, privacy-first JSON to tabular studio.\nLocal, streaming JSON and NDJSON to CSV converter for sensitive datasets.",
+        description="Unnest Studio (flatJSON2csv) — The local, privacy-first JSON to tabular studio.\nLocal, streaming JSON and NDJSON to CSV/Excel converter for sensitive datasets.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("-v", "--version", action="version", version="Unnest Studio 1.0.0 (flatJSON2csv)")
+    parser.add_argument("-v", "--version", action="version", version="Unnest Studio 2.0.0 (flatJSON2csv)")
     parser.add_argument("input", nargs="?", help="JSON/NDJSON file, glob, or directory (optional with --web)")
-    parser.add_argument("-o", "--output", help="CSV file or output directory (required unless using --web)")
+    parser.add_argument("-o", "--output", help="CSV or XLSX output file or directory (required unless using --web)")
+    parser.add_argument(
+        "--format",
+        choices=("csv", "xlsx"),
+        default=None,
+        help="Output format: csv (default) or xlsx (native Excel workbook)",
+    )
     parser.add_argument(
         "--web",
         nargs="?",
@@ -112,17 +118,21 @@ def main(argv: list[str] | None = None) -> int:
     if not args.input:
         parser.error("input file, glob, or directory is required (or use --web)")
 
+    target_format = args.format
     if not args.output:
         if args.dry_run:
             output_spec = "/dev/null"
         else:
             in_path = Path(args.input).expanduser()
             if in_path.is_file():
-                output_spec = str(in_path.with_suffix(".csv"))
+                ext = ".xlsx" if target_format == "xlsx" else ".csv"
+                output_spec = str(in_path.with_suffix(ext))
             else:
                 parser.error("-o/--output is required when converting directories or glob patterns")
     else:
         output_spec = args.output
+        if target_format == "xlsx" and not output_spec.lower().endswith(".xlsx") and not Path(output_spec).is_dir():
+            output_spec = str(Path(output_spec).with_suffix(".xlsx"))
 
     try:
         settings = load_config(args.config)
@@ -151,10 +161,11 @@ def main(argv: list[str] | None = None) -> int:
         if multiple and not args.dry_run:
             output.mkdir(parents=True, exist_ok=True)
 
+        file_ext = ".xlsx" if (target_format == "xlsx" or output.suffix.lower() == ".xlsx") else ".csv"
         for source in inputs:
-            target = output / f"{source.stem}.csv" if multiple else output
+            target = output / f"{source.stem}{file_ext}" if multiple else output
             if target.exists() and target.is_dir():
-                target = target / f"{source.stem}.csv"
+                target = target / f"{source.stem}{file_ext}"
             columns = run_conversion(
                 source, target, settings, dry_run=args.dry_run, verbose=args.verbose
             )

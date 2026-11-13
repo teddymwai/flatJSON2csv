@@ -4,7 +4,7 @@
 >
 > *ted thought this was functional & fancy*
 
-A local, streaming command-line tool and in-browser web application for converting large JSON and NDJSON files to deterministic tabular CSV. Built specifically for sensitive datasets where data cannot leave the local machine, **Unnest Studio** ingests records incrementally and never sends your data over the network.
+A local, streaming command-line tool and in-browser web application for converting large JSON and NDJSON files to deterministic tabular CSV and native Microsoft Excel (`.xlsx`) workbooks, with an integrated online JSON Beautifier. Built specifically for sensitive datasets where data cannot leave the local machine, **Unnest Studio** ingests records incrementally and never sends your data over the network.
 
 The converter operates in a streaming, two-pass model:
 1. **Pass 1 (Discovery):** Streams the input to identify all unique flattened columns across all records and orders them deterministically.
@@ -19,18 +19,27 @@ Line breaks inside cell values are replaced with spaces in CSV output so each re
 ## Requirements and Installation
 
 - Python 3.11 or newer
-- `ijson` 3.x (sole runtime dependency)
+- `ijson` 3.x (core runtime dependency)
+- `openpyxl` 3.1+ (optional, for direct CLI `.xlsx` exports)
 
 Install locally in editable mode:
 
 ```sh
+# Core CSV engine
 python -m pip install -e .
+
+# With Excel (.xlsx) support
+python -m pip install -e ".[excel]"
 ```
 
 Or run directly with Python:
 
 ```sh
+# Export to CSV (default)
 python flatJSON2csv.py input.json -o output.csv
+
+# Export to Excel (.xlsx)
+python flatJSON2csv.py input.json -o output.xlsx
 ```
 
 ---
@@ -136,7 +145,8 @@ flatJSON2csv input.json -o out.csv --array-strategy explode --allow-cartesian
 | Flag | Description | Default |
 |---|---|---|
 | `input` | Path to JSON/NDJSON file, glob pattern, or directory | *Required* |
-| `-o, --output` | Output CSV file or directory | *Required* |
+| `-o, --output` | Output CSV/XLSX file or directory | *Required* |
+| `--format` | Output format: `csv` (default) or `xlsx` (Excel workbook) | Inferred / `csv` |
 | `--config` | Path to JSON configuration file | `None` |
 | `--input-path` | Dot-separated path to record array inside top-level object | Auto-detected |
 | `--flatten` | Flattening mode: `none`, `depth:N`, `full` | `depth:2` |
@@ -167,7 +177,7 @@ flatJSON2csv input.json -o out.csv --array-strategy explode --allow-cartesian
 
 ```text
 flatJSON/
-├── docs/                 # Technical documentation & data specifications (SCHEMA.md)
+├── docs/                 # Documentation, SCHEMA.md, RELEASE_REGISTER.md, and release notes
 ├── samples/              # Real-world benchmark JSON datasets and sample outputs
 ├── tests/                # Automated unit and regression test suite
 ├── ui-mantra/            # Design system, brand palette, and HIG guidelines

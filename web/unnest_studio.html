@@ -983,9 +983,9 @@
           </div>
           <div id="tagline">The local, privacy-first JSON to tabular studio.</div>
         </div>
-        <div class="pill-badge version-pill" data-tooltip="Production v1.0.0 release · Dual CLI and Web engine" data-tooltip-title="Release Status">
+        <div class="pill-badge version-pill" data-tooltip="Production v2.0.0 GA release · Native .xlsx exports &amp; Online JSON Beautifier" data-tooltip-title="Release Status">
           <span class="status-dot"></span>
-          v1.0.0
+          v2.0.0 GA
         </div>
       </div>
 
@@ -1034,7 +1034,28 @@
         </div>
 
         <div id="paste-input-wrapper" style="display:none; flex-direction:column; gap:8px;">
+          <div class="json-beautifier-toolbar" style="display:flex; align-items:center; justify-content:space-between; gap:4px; flex-wrap:wrap;">
+            <span style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); display:inline-flex; align-items:center; gap:4px;">
+              <span class="material-symbols-outlined" style="font-size:13px; color:var(--champagne);">data_object</span>
+              JSON Beautifier
+            </span>
+            <div style="display:flex; gap:4px;">
+              <button type="button" id="btn-beautify-json" class="btn btn-secondary" style="min-height:24px; padding:0 8px; font-size:10px;" data-tooltip="Format raw or minified JSON with 2-space indentation." data-tooltip-title="Beautify / Prettify">
+                <span class="material-symbols-outlined" style="font-size:12px;">format_align_left</span>
+                Beautify
+              </button>
+              <button type="button" id="btn-minify-json" class="btn btn-secondary" style="min-height:24px; padding:0 8px; font-size:10px;" data-tooltip="Strips all whitespace and newlines to compress JSON payload." data-tooltip-title="Minify / Compact">
+                <span class="material-symbols-outlined" style="font-size:12px;">compress</span>
+                Minify
+              </button>
+              <button type="button" id="btn-validate-json" class="btn btn-secondary" style="min-height:24px; padding:0 8px; font-size:10px;" data-tooltip="Validates syntax and pinpoints exact line/column of any syntax errors." data-tooltip-title="Validate Syntax">
+                <span class="material-symbols-outlined" style="font-size:12px;">check_circle</span>
+                Validate
+              </button>
+            </div>
+          </div>
           <textarea id="paste-textarea" class="text-input" placeholder="Paste JSON array, object, or NDJSON lines here (or Cmd+V anywhere)..." style="width:100%; height:110px; font-family:var(--font-mono); font-size:11.5px; resize:vertical; padding:10px; line-height:1.4;" data-tooltip="Paste raw JSON text or NDJSON stream lines here." data-tooltip-title="Direct Paste Input"></textarea>
+          <div id="paste-syntax-msg" style="display:none; font-size:10.5px; font-family:var(--font-mono); padding:6px 8px; border-radius:6px; line-height:1.3;"></div>
           <button type="button" id="btn-parse-paste" class="btn btn-primary" style="min-height:30px; font-size:11px; width:100%;" data-tooltip="Parse and preview the pasted JSON data." data-tooltip-title="Load Action">
             <span class="material-symbols-outlined" style="font-size:14px;">play_arrow</span>
             Load Pasted JSON
@@ -1122,6 +1143,10 @@
           <span class="material-symbols-outlined">download</span>
           Convert & Download CSV
         </button>
+        <button type="button" id="btn-convert-xlsx" class="btn btn-primary" style="background: linear-gradient(135deg, rgba(20, 90, 50, 0.95), rgba(14, 63, 42, 0.95)); border: 1px solid rgba(138, 191, 158, 0.35);" disabled data-tooltip="Flattens all records, generates a native Microsoft Excel .xlsx workbook, and triggers download." data-tooltip-title="Excel Export">
+          <span class="material-symbols-outlined">table_view</span>
+          Convert & Export .xlsx
+        </button>
         <button type="button" id="btn-dryrun" class="btn btn-secondary" disabled data-tooltip="Quickly scans and reports all discovered column headers and count without generating rows or downloading." data-tooltip-title="Schema Dry Run">
           <span class="material-symbols-outlined">visibility</span>
           Inspect Columns (Dry Run)
@@ -1158,9 +1183,13 @@
             <span class="material-symbols-outlined" style="font-size:14px;">content_copy</span>
             Copy CSV
           </button>
+          <button type="button" id="btn-download-xlsx" class="btn btn-secondary" style="min-height:28px; padding:0 10px; font-size:11px;" disabled data-tooltip="Exports the dataset as a native Microsoft Excel .xlsx file." data-tooltip-title="Download Excel">
+            <span class="material-symbols-outlined" style="font-size:14px; color:var(--accent-light);">table_view</span>
+            .xlsx
+          </button>
           <button type="button" id="btn-quick-download" class="btn btn-primary" style="min-height:28px; padding:0 10px; font-size:11px;" disabled data-tooltip="Saves the complete generated CSV file to your local computer." data-tooltip-title="Download File">
             <span class="material-symbols-outlined" style="font-size:14px;">download</span>
-            Download CSV
+            CSV
           </button>
         </div>
       </nav>
@@ -1216,10 +1245,16 @@
       <div id="raw-view">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span class="section-label">Raw CSV Output (Preview)</span>
-          <button type="button" id="btn-download-raw" class="btn btn-primary" style="min-height:30px; padding:0 14px; font-size:11px;" data-tooltip="Downloads the full generated CSV file to your local computer." data-tooltip-title="Download File">
-            <span class="material-symbols-outlined" style="font-size:15px;">file_download</span>
-            Download Full CSV
-          </button>
+          <div style="display:flex; gap:6px;">
+            <button type="button" id="btn-download-raw-xlsx" class="btn btn-secondary" style="min-height:30px; padding:0 12px; font-size:11px;" disabled data-tooltip="Downloads the full generated dataset as a Microsoft Excel workbook (.xlsx)." data-tooltip-title="Export Excel">
+              <span class="material-symbols-outlined" style="font-size:15px; color:var(--accent-light);">table_view</span>
+              Export .xlsx
+            </button>
+            <button type="button" id="btn-download-raw" class="btn btn-primary" style="min-height:30px; padding:0 14px; font-size:11px;" data-tooltip="Downloads the full generated CSV file to your local computer." data-tooltip-title="Download File">
+              <span class="material-symbols-outlined" style="font-size:15px;">file_download</span>
+              Download CSV
+            </button>
+          </div>
         </div>
         <textarea id="raw-textarea" readonly></textarea>
       </div>
@@ -1360,7 +1395,7 @@
       <div class="guidance-brand-col">
         <div class="guidance-brand">
           <span class="material-symbols-outlined" style="color:var(--champagne); font-size:16px;">dataset</span>
-          <span>Unnest Studio · v1.0.0 Production Architecture</span>
+          <span>Unnest Studio · v2.0.0 Production Architecture</span>
         </div>
         <div class="guidance-tagline">ted thought this was functional &amp; fancy</div>
       </div>
@@ -1410,11 +1445,17 @@
   const pasteInputWrapper = document.getElementById("paste-input-wrapper");
   const pasteTextarea = document.getElementById("paste-textarea");
   const btnParsePaste = document.getElementById("btn-parse-paste");
+  const btnBeautifyJson = document.getElementById("btn-beautify-json");
+  const btnMinifyJson = document.getElementById("btn-minify-json");
+  const btnValidateJson = document.getElementById("btn-validate-json");
+  const pasteSyntaxMsg = document.getElementById("paste-syntax-msg");
   const btnClearAll = document.getElementById("btn-clear-all");
   const btnConvert = document.getElementById("btn-convert");
+  const btnConvertXlsx = document.getElementById("btn-convert-xlsx");
   const btnDryRun = document.getElementById("btn-dryrun");
   const btnQuickCopy = document.getElementById("btn-quick-copy");
   const btnQuickDownload = document.getElementById("btn-quick-download");
+  const btnDownloadXlsx = document.getElementById("btn-download-xlsx");
   const elapsedNode = document.getElementById("elapsed");
   const meterFileVal = document.getElementById("meter-file-val");
   const meterRecordsVal = document.getElementById("meter-records-val");
@@ -1443,6 +1484,7 @@
   const rawTextarea = document.getElementById("raw-textarea");
   const btnCopyCols = document.getElementById("btn-copy-cols");
   const btnDownloadRaw = document.getElementById("btn-download-raw");
+  const btnDownloadRawXlsx = document.getElementById("btn-download-raw-xlsx");
   const colFilterInput = document.getElementById("col-filter-input");
 
   let activeFlatten = "depth:2";
@@ -1762,9 +1804,13 @@
     emptyState.style.display = "flex";
     previewTable.style.display = "none";
     btnConvert.disabled = true;
+    btnConvertXlsx.disabled = true;
     btnDryRun.disabled = true;
     btnQuickCopy.disabled = true;
     btnQuickDownload.disabled = true;
+    btnDownloadXlsx.disabled = true;
+    btnDownloadRawXlsx.disabled = true;
+    if (pasteSyntaxMsg) pasteSyntaxMsg.style.display = "none";
     inputPathNode.value = "";
   }
 
@@ -1894,9 +1940,12 @@
 
     if (parsedRecords.length > 0) {
       btnConvert.disabled = false;
+      btnConvertXlsx.disabled = false;
       btnDryRun.disabled = false;
       btnQuickCopy.disabled = false;
       btnQuickDownload.disabled = false;
+      btnDownloadXlsx.disabled = false;
+      btnDownloadRawXlsx.disabled = false;
       runProcessing({ dryRun: false, autoTrigger: true });
     } else {
       emptyState.style.display = "flex";
@@ -2016,8 +2065,11 @@
 
   // ── Actions ──────────────────────────────────────────────────────────────
   btnDryRun.addEventListener("click", () => runProcessing({ dryRun: true }));
-  btnConvert.addEventListener("click", () => runProcessing({ dryRun: false }));
+  btnConvert.addEventListener("click", () => runProcessing({ dryRun: false, exportFormat: "csv" }));
+  btnConvertXlsx.addEventListener("click", () => runProcessing({ dryRun: false, exportFormat: "xlsx" }));
   btnQuickDownload.addEventListener("click", triggerDownload);
+  btnDownloadXlsx.addEventListener("click", triggerXlsxDownload);
+  btnDownloadRawXlsx.addEventListener("click", triggerXlsxDownload);
   btnQuickCopy.addEventListener("click", copyCsvToClipboard);
 
   async function copyCsvToClipboard() {
@@ -2040,10 +2092,11 @@
     }
   }
 
-  async function runProcessing({ dryRun, autoTrigger = false }) {
+  async function runProcessing({ dryRun = false, autoTrigger = false, exportFormat = "csv" } = {}) {
     if (isConverting || parsedRecords.length === 0) return;
     isConverting = true;
     btnConvert.disabled = true;
+    btnConvertXlsx.disabled = true;
     btnDryRun.disabled = true;
     showLoading(dryRun ? "Scanning column schema..." : "Flattening " + parsedRecords.length.toLocaleString() + " records...");
 
@@ -2113,7 +2166,11 @@
         renderTablePreview(allFlattenedRows.slice(0, 50), discoveredColumns);
 
         if (!autoTrigger) {
-          triggerDownload();
+          if (exportFormat === "xlsx") {
+            triggerXlsxDownload();
+          } else {
+            triggerDownload();
+          }
         }
       }
 
@@ -2125,9 +2182,12 @@
     } finally {
       isConverting = false;
       btnConvert.disabled = false;
+      btnConvertXlsx.disabled = false;
       btnDryRun.disabled = false;
       btnQuickCopy.disabled = !generatedCsv;
       btnQuickDownload.disabled = !generatedCsv;
+      btnDownloadXlsx.disabled = !lastFlattenedRows.length;
+      btnDownloadRawXlsx.disabled = !lastFlattenedRows.length;
       hideLoading();
       setTimeout(() => { if (statusProgressBar) statusProgressBar.style.width = "0%"; }, 800);
     }
@@ -2199,6 +2259,307 @@
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
+
+  function buildXlsx(columns, rows) {
+    function esc(s) {
+      if (s == null) return "";
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;")
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, " ");
+    }
+
+    function colToLetters(colIndex) {
+      let temp = colIndex;
+      let letter = "";
+      while (temp >= 0) {
+        letter = String.fromCharCode((temp % 26) + 65) + letter;
+        temp = Math.floor(temp / 26) - 1;
+      }
+      return letter;
+    }
+
+    let sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+    sheetXml += '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">\n  <sheetData>\n';
+
+    // Header row (Row 1)
+    sheetXml += '    <row r="1">\n';
+    columns.forEach((col, idx) => {
+      const ref = colToLetters(idx) + "1";
+      sheetXml += `      <c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${esc(col)}</t></is></c>\n`;
+    });
+    sheetXml += '    </row>\n';
+
+    // Data rows
+    rows.forEach((row, rIdx) => {
+      const rowNum = rIdx + 2;
+      sheetXml += `    <row r="${rowNum}">\n`;
+      columns.forEach((col, cIdx) => {
+        const val = row[col];
+        if (val === undefined || val === null || val === "") return;
+        const ref = colToLetters(cIdx) + rowNum;
+
+        if (typeof val === "number" && !isNaN(val) && isFinite(val)) {
+          sheetXml += `      <c r="${ref}" t="n"><v>${val}</v></c>\n`;
+        } else if (typeof val === "boolean") {
+          sheetXml += `      <c r="${ref}" t="b"><v>${val ? 1 : 0}</v></c>\n`;
+        } else if (typeof val === "string" && /^-?\d+(\.\d+)?$/.test(val.trim()) && !/^0\d+/.test(val.trim()) && val.trim().length < 18) {
+          sheetXml += `      <c r="${ref}" t="n"><v>${val.trim()}</v></c>\n`;
+        } else {
+          sheetXml += `      <c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${esc(val)}</t></is></c>\n`;
+        }
+      });
+      sheetXml += '    </row>\n';
+    });
+    sheetXml += '  </sheetData>\n</worksheet>';
+
+    const textEnc = new TextEncoder();
+    const crcTable = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      crcTable[n] = c;
+    }
+    function crc32(buf) {
+      let crc = 0 ^ (-1);
+      for (let i = 0; i < buf.length; i++) crc = (crc >>> 8) ^ crcTable[(crc ^ buf[i]) & 0xFF];
+      return (crc ^ (-1)) >>> 0;
+    }
+
+    const files = [
+      {
+        name: "[Content_Types].xml",
+        data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n  <Default Extension="xml" ContentType="application/xml"/>\n  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>\n  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>\n</Types>'
+      },
+      {
+        name: "_rels/.rels",
+        data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>\n</Relationships>'
+      },
+      {
+        name: "xl/_rels/workbook.xml.rels",
+        data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>\n</Relationships>'
+      },
+      {
+        name: "xl/workbook.xml",
+        data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">\n  <sheets>\n    <sheet name="Unnest Data" sheetId="1" r:id="rId1"/>\n  </sheets>\n</workbook>'
+      },
+      {
+        name: "xl/worksheets/sheet1.xml",
+        data: sheetXml
+      }
+    ];
+
+    const entries = [];
+    let offset = 0;
+    const parts = [];
+
+    for (const file of files) {
+      const nameBytes = textEnc.encode(file.name);
+      const dataBytes = typeof file.data === "string" ? textEnc.encode(file.data) : file.data;
+      const crc = crc32(dataBytes);
+      const size = dataBytes.length;
+
+      const localHeader = new Uint8Array(30 + nameBytes.length);
+      const view = new DataView(localHeader.buffer);
+      view.setUint32(0, 0x04034b50, true);
+      view.setUint16(4, 20, true);
+      view.setUint16(6, 0x0800, true);
+      view.setUint16(8, 0, true);
+      view.setUint16(10, 0, true);
+      view.setUint16(12, 0, true);
+      view.setUint32(14, crc, true);
+      view.setUint32(18, size, true);
+      view.setUint32(22, size, true);
+      view.setUint16(26, nameBytes.length, true);
+      view.setUint16(28, 0, true);
+      localHeader.set(nameBytes, 30);
+
+      entries.push({ nameBytes, crc, size, offset });
+      parts.push(localHeader, dataBytes);
+      offset += localHeader.length + dataBytes.length;
+    }
+
+    const centralDirStart = offset;
+    for (const entry of entries) {
+      const cdHeader = new Uint8Array(46 + entry.nameBytes.length);
+      const view = new DataView(cdHeader.buffer);
+      view.setUint32(0, 0x02014b50, true);
+      view.setUint16(4, 20, true);
+      view.setUint16(6, 20, true);
+      view.setUint16(8, 0x0800, true);
+      view.setUint16(10, 0, true);
+      view.setUint16(12, 0, true);
+      view.setUint16(14, 0, true);
+      view.setUint32(16, entry.crc, true);
+      view.setUint32(20, entry.size, true);
+      view.setUint32(24, entry.size, true);
+      view.setUint16(28, entry.nameBytes.length, true);
+      view.setUint16(30, 0, true);
+      view.setUint16(32, 0, true);
+      view.setUint16(34, 0, true);
+      view.setUint16(36, 0, true);
+      view.setUint32(38, 0, true);
+      view.setUint32(42, entry.offset, true);
+      cdHeader.set(entry.nameBytes, 46);
+
+      parts.push(cdHeader);
+      offset += cdHeader.length;
+    }
+
+    const centralDirSize = offset - centralDirStart;
+    const eocd = new Uint8Array(22);
+    const view = new DataView(eocd.buffer);
+    view.setUint32(0, 0x06054b50, true);
+    view.setUint16(4, 0, true);
+    view.setUint16(6, 0, true);
+    view.setUint16(8, entries.length, true);
+    view.setUint16(10, entries.length, true);
+    view.setUint32(12, centralDirSize, true);
+    view.setUint32(16, centralDirStart, true);
+    view.setUint16(20, 0, true);
+    parts.push(eocd);
+
+    const totalLength = parts.reduce((sum, p) => sum + p.length, 0);
+    const result = new Uint8Array(totalLength);
+    let pos = 0;
+    for (const part of parts) {
+      result.set(part, pos);
+      pos += part.length;
+    }
+    return result;
+  }
+
+  function triggerXlsxDownload() {
+    if (!lastFlattenedRows || lastFlattenedRows.length === 0 || !discoveredColumns || discoveredColumns.length === 0) {
+      if (parsedRecords.length > 0) {
+        runProcessing({ dryRun: false, exportFormat: "xlsx" });
+      }
+      return;
+    }
+    try {
+      showLoading("Generating native Excel spreadsheet...");
+      const xlsxBytes = buildXlsx(discoveredColumns, lastFlattenedRows);
+      const blob = new Blob([xlsxBytes], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const outName = currentFile ? currentFile.name.replace(/\.[^/.]+$/, "") + ".xlsx" : "converted.xlsx";
+      a.href = url;
+      a.download = outName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      console.error("XLSX Export Error:", err);
+      showErrorState("Excel export failed: " + err.message);
+    } finally {
+      hideLoading();
+    }
+  }
+
+  // ── Online JSON Beautifier, Minifier & Validator ────────────────────────
+  function setSyntaxMsg(type, text) {
+    if (!pasteSyntaxMsg) return;
+    pasteSyntaxMsg.style.display = "block";
+    if (type === "success") {
+      pasteSyntaxMsg.style.background = "rgba(46, 125, 50, 0.15)";
+      pasteSyntaxMsg.style.color = "#8abf9e";
+      pasteSyntaxMsg.style.border = "1px solid rgba(138, 191, 158, 0.3)";
+      pasteSyntaxMsg.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; margin-right:4px;">check_circle</span>' + text;
+    } else if (type === "error") {
+      pasteSyntaxMsg.style.background = "rgba(198, 40, 40, 0.15)";
+      pasteSyntaxMsg.style.color = "#ff8a80";
+      pasteSyntaxMsg.style.border = "1px solid rgba(255, 138, 128, 0.3)";
+      pasteSyntaxMsg.innerHTML = '<span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; margin-right:4px;">error</span>' + text;
+    } else {
+      pasteSyntaxMsg.style.background = "rgba(255, 255, 255, 0.05)";
+      pasteSyntaxMsg.style.color = "var(--text-muted)";
+      pasteSyntaxMsg.style.border = "1px solid var(--border-subtle)";
+      pasteSyntaxMsg.textContent = text;
+    }
+  }
+
+  function getErrorCoordinates(text, err) {
+    const match = err.message.match(/at position (\d+)/i) || err.message.match(/char (\d+)/i);
+    if (match) {
+      const pos = parseInt(match[1], 10);
+      const lines = text.slice(0, pos).split("\n");
+      const line = lines.length;
+      const col = lines[lines.length - 1].length + 1;
+      return { line, col, pos };
+    }
+    const lineColMatch = err.message.match(/line (\d+) column (\d+)/i);
+    if (lineColMatch) {
+      return { line: parseInt(lineColMatch[1], 10), col: parseInt(lineColMatch[2], 10) };
+    }
+    return null;
+  }
+
+  btnBeautifyJson.addEventListener("click", () => {
+    const raw = pasteTextarea.value.trim();
+    if (!raw) {
+      setSyntaxMsg("error", "Paste textarea is empty. Paste raw JSON first.");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      const formatted = JSON.stringify(parsed, null, 2);
+      pasteTextarea.value = formatted;
+      const count = Array.isArray(parsed) ? parsed.length : 1;
+      setSyntaxMsg("success", `Formatted JSON (2-space indent · ${count} ${count === 1 ? 'record' : 'records'})`);
+    } catch (err) {
+      const coords = getErrorCoordinates(raw, err);
+      const loc = coords ? `Line ${coords.line}, Col ${coords.col}` : "Syntax Error";
+      setSyntaxMsg("error", `Invalid JSON at ${loc}: ${err.message}`);
+    }
+  });
+
+  btnMinifyJson.addEventListener("click", () => {
+    const raw = pasteTextarea.value.trim();
+    if (!raw) {
+      setSyntaxMsg("error", "Paste textarea is empty.");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      const minified = JSON.stringify(parsed);
+      const origLen = raw.length;
+      const minLen = minified.length;
+      const savedPct = Math.max(0, Math.round(((origLen - minLen) / origLen) * 100));
+      pasteTextarea.value = minified;
+      setSyntaxMsg("success", `Minified JSON (Reduced by ${savedPct}%, ${minLen} characters)`);
+    } catch (err) {
+      const coords = getErrorCoordinates(raw, err);
+      const loc = coords ? `Line ${coords.line}, Col ${coords.col}` : "Syntax Error";
+      setSyntaxMsg("error", `Invalid JSON at ${loc}: ${err.message}`);
+    }
+  });
+
+  btnValidateJson.addEventListener("click", () => {
+    const raw = pasteTextarea.value.trim();
+    if (!raw) {
+      setSyntaxMsg("error", "Paste textarea is empty.");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        setSyntaxMsg("success", `Valid JSON Array (${parsed.length.toLocaleString()} items)`);
+      } else if (typeof parsed === "object" && parsed !== null) {
+        const keys = Object.keys(parsed);
+        setSyntaxMsg("success", `Valid JSON Object (${keys.length} top-level keys: ${keys.slice(0, 3).join(", ")}${keys.length > 3 ? "…" : ""})`);
+      } else {
+        setSyntaxMsg("success", `Valid JSON Primitive (${typeof parsed}: ${parsed})`);
+      }
+    } catch (err) {
+      const coords = getErrorCoordinates(raw, err);
+      const loc = coords ? `Line ${coords.line}, Col ${coords.col}` : "Syntax Error";
+      setSyntaxMsg("error", `Invalid JSON at ${loc}: ${err.message}`);
+    }
+  });
 
   btnDownloadRaw.addEventListener("click", triggerDownload);
 

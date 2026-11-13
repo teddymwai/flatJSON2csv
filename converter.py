@@ -464,6 +464,47 @@ def run_conversion(
     target.parent.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()
     row_count = 0
+
+    if target.suffix.lower() == ".xlsx":
+        try:
+            import openpyxl
+        except ImportError:
+            raise ConverterError(
+                "Exporting to .xlsx requires 'openpyxl'. Install it with: pip install openpyxl (or pip install 'flatJSON2csv[excel]')"
+            )
+        wb = openpyxl.Workbook(write_only=True)
+        ws = wb.create_sheet(title="Unnest Data")
+        ws.append(columns)
+        record_path = "" if single_root_object else f"{array_path}.*" if array_path else "*"
+        for record in iter_records(source, settings, array_path, single_root_object):
+            for row in flatten_record(record, settings, record_path):
+                row_vals = []
+                for col in columns:
+                    val = row.get(col, "")
+                    if isinstance(val, str):
+                        clean_str = val.replace("\r\n", " ").replace("\r", " ").replace("\n", " ")
+                        stripped = clean_str.strip()
+                        if stripped.isdigit() and len(stripped) < 18 and not (stripped.startswith("0") and len(stripped) > 1):
+                            row_vals.append(int(stripped))
+                        elif stripped.lower() == "true":
+                            row_vals.append(True)
+                        elif stripped.lower() == "false":
+                            row_vals.append(False)
+                        else:
+                            row_vals.append(clean_str)
+                    else:
+                        row_vals.append(val)
+                ws.append(row_vals)
+                row_count += 1
+                if verbose and row_count % 10000 == 0:
+                    elapsed = time.monotonic() - started
+                    print(f"{source}: {row_count} rows, {elapsed:.1f}s", file=os.sys.stderr, flush=True)
+        wb.save(target)
+        if verbose:
+            elapsed = time.monotonic() - started
+            print(f"{source}: complete, {row_count} rows, {elapsed:.1f}s", file=os.sys.stderr)
+        return columns
+
     with target.open("w", encoding=settings["encoding"], newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=columns, quoting=quoting, extrasaction="ignore", lineterminator="\r\n")
         writer.writeheader()

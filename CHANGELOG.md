@@ -1,5 +1,29 @@
 # Changelog
 
+## [2.0.0] - 2026-11-13 (Strigops - Major Architecture Release)
+
+### Added
+- **Native In-Browser `.xlsx` (Excel) Generation:**
+  - Implemented 100% client-side OpenXML spreadsheet engine in pure vanilla JavaScript with zero external runtime libraries.
+  - Generates multi-column `.xlsx` files with typed cells (numeric, boolean, inline strings) and Method 0 STORE ZIP packaging.
+  - Added "Convert & Export .xlsx" button in the configuration sidebar, ".xlsx" quick-download in results navigation, and "Export .xlsx" in the raw preview tab.
+  - 100% compatible with the offline single-file Air-Gap HTML bundle.
+- **Streaming CLI Excel Export:**
+  - Added native `.xlsx` writing in `converter.py` using `openpyxl.Workbook(write_only=True)` to stream records row-by-row with bounded memory.
+  - Added `--format {csv,xlsx}` argument and automatic `.xlsx` inference for `-o filename.xlsx` in `flatJSON2csv.py`.
+  - Added `excel = ["openpyxl>=3.1.0"]` optional dependency in `pyproject.toml`.
+- **Online JSON Beautifier & Diagnostic Suite:**
+  - Added JSON Beautifier toolbar above the direct paste area with:
+    - `[ Beautify ]`: Formats raw/minified JSON with 2-space indentation and displays record tally.
+    - `[ Minify ]`: Strips whitespace/newlines and reports percentage compression.
+    - `[ Validate ]`: Validates JSON structure (Array vs Object vs Primitive) and counts top-level keys.
+  - Real-time syntax error coordinate pinpointing displaying `Line N, Col M` offsets when input is malformed.
+- **Release Register & Executive Documentation:**
+  - Added `docs/RELEASE_REGISTER.md` and `docs/RELEASE_NOTES_v2.0.0.md` adopting CYBER RANGES release governance standards.
+- **Service Worker Cache:** Bumped PWA service worker cache identifier to `flatJSON2csv-v7`.
+- **UI Version Badges:** Upgraded header badge to `v2.0.0 GA` and guidance footer to `Unnest Studio · v2.0.0 Production Architecture`.
+
+
 ## [1.1.1] - 2026-11-13 (Directory Architecture & Tool-Role Renaming)
 
 ### Added

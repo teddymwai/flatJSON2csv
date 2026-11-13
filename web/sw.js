@@ -1,5 +1,5 @@
 /* Unnest Studio Service Worker — Offline Caching (CyberChef model) */
-const CACHE_NAME = 'flatJSON2csv-v6';
+const CACHE_NAME = 'flatJSON2csv-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
