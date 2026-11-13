@@ -1,8 +1,10 @@
-# flatJSON2csv
+# Unnest Studio (flatJSON2csv)
 
+> *The local, privacy-first JSON to tabular studio.*
+>
 > *ted thought this was functional & fancy*
 
-A local, streaming command-line tool for converting large JSON and NDJSON files to deterministic CSV. Built specifically for sensitive datasets where data cannot leave the local machine, `flatJSON2csv` ingests records incrementally with `ijson` and never loads the entire document into memory.
+A local, streaming command-line tool and in-browser web application for converting large JSON and NDJSON files to deterministic tabular CSV. Built specifically for sensitive datasets where data cannot leave the local machine, **Unnest Studio** ingests records incrementally and never sends your data over the network.
 
 The converter operates in a streaming, two-pass model:
 1. **Pass 1 (Discovery):** Streams the input to identify all unique flattened columns across all records and orders them deterministically.
@@ -158,6 +160,18 @@ flatJSON2csv input.json -o out.csv --array-strategy explode --allow-cartesian
 - The hosted interface loads its icon font stylesheet from Google Fonts; input data is not included in that request.
 - No telemetry, analytics, or update checks.
 - Streaming architecture prevents memory exhaustion on large datasets.
+
+---
+
+## Author & Connect
+
+*ted thought this was functional & fancy*
+
+- **GitHub:** [@teddymwai](https://github.com/teddymwai) / [flatJSON2csv](https://github.com/teddymwai/flatJSON2csv)
+- **GitLab:** [@teddymwai](https://gitlab.com/teddymwai)
+- **Twitter / X:** [@teddymwai](https://x.com/teddymwai)
+- **Instagram:** [@teddymwai](https://instagram.com/teddymwai)
+- **LinkedIn:** [linkedin.com/in/teddymwai/](https://linkedin.com/in/teddymwai/)
 
 ---
 

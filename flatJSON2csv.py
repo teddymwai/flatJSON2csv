@@ -17,11 +17,11 @@ from converter import ConverterError, discover_inputs, load_config, run_conversi
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="flatJSON2csv",
-        description="flatJSON2csv — ted thought this was functional & fancy\nLocal, streaming JSON and NDJSON to CSV converter for sensitive datasets.",
+        prog="unnest",
+        description="Unnest Studio (flatJSON2csv) — The local, privacy-first JSON to tabular studio.\nLocal, streaming JSON and NDJSON to CSV converter for sensitive datasets.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("-v", "--version", action="version", version="flatJSON2csv 1.0.0")
+    parser.add_argument("-v", "--version", action="version", version="Unnest Studio 1.0.0 (flatJSON2csv)")
     parser.add_argument("input", nargs="?", help="JSON/NDJSON file, glob, or directory (optional with --web)")
     parser.add_argument("-o", "--output", help="CSV file or output directory (required unless using --web)")
     parser.add_argument(

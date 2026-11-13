@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.1.0] - 2026-11-13 (Unnest Studio Architecture Redesign)
+
+### Added
+- **Project Rebrand to Unnest Studio:** Rebranded project and interface to **Unnest Studio** with official tagline: *"The local, privacy-first JSON to tabular studio."*
+- **Integrated IDE Telemetry Status Bar:** Re-engineered the middle 80px telemetry cards into an ultra-quiet bottom IDE status bar (`#status-bar`) displaying input filename/size, records processed, column width, rows/sec speed, and client-side security status.
+- **In-Table Real-Time Column Filter:** Added live column filter input (`#col-filter-input`) in the preview toolbar allowing real-time searching across wide schemas.
+- **Author & Social Network Links:** Added verified links in the architectural guidance footer for:
+  - *ted thought this was functional & fancy*
+  - GitHub (`https://github.com/teddymwai/flatJSON2csv`)
+  - GitLab (`https://gitlab.com/teddymwai`)
+  - Twitter/X (`https://x.com/teddymwai`)
+  - Instagram (`https://instagram.com/teddymwai`)
+  - LinkedIn (`https://linkedin.com/in/teddymwai/`)
+- **Dual CLI Command Support:** Added `unnest` command script entrypoint in `pyproject.toml` alongside `flatJSON2csv`.
+
+### Fixed
+- **Single-Row Header Layout (100% Zoom):** Eliminated awkward second-row wrapping where `Air-Gap HTML` and timer were pushed off-row on standard laptops and 1080p displays. Re-architected header into a two-sided Quiet Chrome layout fitting screens from 800px upwards without wrapping.
+- **Workspace Canvas Recovery:** Gained 80px of vertical viewing area for the data table and configuration sidebar by removing the middle telemetry card band.
+- **Service Worker Cache:** Bumped PWA service worker cache identifier to `flatJSON2csv-v5`.
+
+---
+
 ## [1.0.0] - 2026-11-13 (Production Architecture Release)
 
 ### Added
@@ -11,7 +33,7 @@
   - Air-gapped privacy guarantees and CLI parity.
 - **Dynamic Feedback & Error Cards:** Added loading spinner and real-time status reporting during file ingestion, along with graceful in-place error diagnostics replacing native browser alerts.
 - **Global Drag & Drop:** Added window-level drag-and-drop listener allowing users to drop JSON/NDJSON files anywhere on the application viewport.
-- **CLI `-v` / `--version` Flag:** Added standard version inspection reporting `flatJSON2csv 1.0.0`.
+- **CLI `-v` / `--version` Flag:** Added standard version inspection reporting `Unnest Studio 1.0.0 (flatJSON2csv)`.
 
 ### Fixed
 - **File Upload & Preview Ingestion:** Fixed issue where uploaded JSON files failed to render in the preview table by:

@@ -5,12 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "flatJSON2csv"
 version = "1.0.0"
-description = "ted thought this was functional & fancy"
+description = "Unnest Studio — The local, privacy-first JSON to tabular studio."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = ["ijson>=3.2,<4"]
 
 [project.scripts]
+unnest = "flatJSON2csv:main"
 flatJSON2csv = "flatJSON2csv:main"
 
 [tool.setuptools]
